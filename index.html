@@ -98,53 +98,6 @@
             connect();
         });
 
-        function extractVars(input) {
-
-            var match1 = input.match(/\*(.*?)\:/);
-            var match2 = input.match(/\:(.*?)\*/);
-
-            var variable = match1 ? match1[1] : null;
-            var value = match2 ? match2[1] : null;
-            console.log("var: " + variable + " val " + value);
-            return { variable, value };
-        }
-        function scale(number, inMin, inMax, outMin, outMax) {//StackOverflow
-            return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-        }
-        function HandleSpecialMessages(msg) {
-            if (!msg) return;
-            messagepart += msg;
-            const regex = /\*(.*?):(.*?)\*/g;
-            let match;
-            const result = [];
-
-            while ((match = regex.exec(messagepart)) !== null) {
-                result.push({ index: match[1], value: match[2] });
-                messagepart = messagepart.replace("*" + match[1] + ":" + match[2] + "*", "");
-                console.log("var: " + match[1] + " val " + match[2]);
-            }
-            if (result.length > 0) {
-                result.forEach(element => {
-                    const index = element.index
-                    const value = element.value
-                    switch (index) {
-                        case "PSL":
-                        case "PSMLL":
-                        case "PSML":
-                        case "PSMR":
-                        case "PSMRR":
-                        case "PSR":
-                            document.getElementById(index).style.height = scale(value,0,6,0,100) + "%";
-                            break;
-
-                        default:
-                            break;
-                    }
-                });
-            }
-            return result;
-        }
-
         async function connect() {
             if (!navigator.serial) {
                 outputElement.textContent = 'Web Serial API not supported.';
@@ -192,6 +145,58 @@
             }
         }
         //END OF COMM
+
+        //DATA EXTRACTION
+        function extractVars(input) {
+
+            var match1 = input.match(/\*(.*?)\:/);
+            var match2 = input.match(/\:(.*?)\*/);
+
+            var variable = match1 ? match1[1] : null;
+            var value = match2 ? match2[1] : null;
+            console.log("var: " + variable + " val " + value);
+            return { variable, value };
+        }
+
+        function scale(number, inMin, inMax, outMin, outMax) {//StackOverflow
+            return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+        }
+
+        function HandleSpecialMessages(msg) {
+            if (!msg) return;
+            messagepart += msg;
+            const regex = /\*(.*?):(.*?)\*/g;
+            let match;
+            const result = [];
+
+            while ((match = regex.exec(messagepart)) !== null) {
+                result.push({ index: match[1], value: match[2] });
+                messagepart = messagepart.replace("*" + match[1] + ":" + match[2] + "*", "");
+                console.log("var: " + match[1] + " val " + match[2]);
+            }
+            if (result.length > 0) {
+                result.forEach(element => {
+                    const index = element.index
+                    const value = element.value
+                    switch (index) {
+                        case "PSL":
+                        case "PSMLL":
+                        case "PSML":
+                        case "PSMR":
+                        case "PSMRR":
+                        case "PSR":
+                            document.getElementById(index).style.height = scale(value, 0, 6, 0, 100) + "%";
+                            break;
+
+                        default:
+                            break;
+                    }
+                });
+            }
+            return result;
+        }
+
+        //END OF DATA EXTRACTION
 
         //KEYBOARD FUNCTIONS
         var holdingDown = [];
