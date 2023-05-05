@@ -17,6 +17,13 @@
                 <button id="connect" class="btn btn-primary">Connect</button>
                 <button onclick="writeToSerial('*|:0*')" class="btn btn-danger">!!STOP!!</button>
                 <button onclick="writeToSerial('*e:0*')" class="btn btn-warning">Stop Motors</button>
+                <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                    <input type="radio" class="btn-check" name="InputType" onchange="SwitchInputs()" value="KB" id="KB" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary" for="btnradio1">Keyboard</label>
+                  
+                    <input type="radio" class="btn-check" name="InputType" onchange="SwitchInputs()" value="CTRLR" id="CTRLR" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="btnradio2">Controller</label>
+                  </div>
             </div>
         </div>
         <div class="row">
@@ -92,12 +99,16 @@
             },
         });
 
-        var port, turbo, messagepart = "", lastmessage = "", recieving = false;
+        var port, turbo, messagepart = "", lastmessage = "", recieving = false,useKeyboard = true;
         //COMM
         connectButton.addEventListener('click', () => {
             connect();
         });
 
+
+        function SwitchInputs() {
+            useKeyboard = document.getElementById("KB").checked
+        }
         async function connect() {
             if (!navigator.serial) {
                 outputElement.textContent = 'Web Serial API not supported.';
@@ -130,6 +141,7 @@
             }
         }
         async function writeToSerial(data) {
+            if (!port) return;
             if (!port.writable) {
                 console.error('Serial port not writable');
                 return;
@@ -220,22 +232,22 @@
             console.log(holdingDown);
             const key = event.key.toUpperCase();
             switch (key) {
-                case 'W':
-                    HandleInputCounts(key, "keydown");
-                    writeToSerial(turbo ? "*w:400*" : '*w:200*');
-                    break;
-                case 'S':
-                    HandleInputCounts(key, "keydown");
-                    writeToSerial(turbo ? "*s:400*" : '*s:200*');
-                    break;
-                case 'A':
-                    HandleInputCounts(key, "keydown");
-                    writeToSerial(turbo ? "*a:400*" : '*a:200*');
-                    break;
-                case 'D':
-                    HandleInputCounts(key, "keydown");
-                    writeToSerial(turbo ? "*d:400*" : '*d:200*');
-                    break;
+                // case 'W':
+                //     HandleInputCounts(key, "keydown");
+                //     writeToSerial(turbo ? "*w:400*" : '*w:200*');
+                //     break;
+                // case 'S':
+                //     HandleInputCounts(key, "keydown");
+                //     writeToSerial(turbo ? "*s:400*" : '*s:200*');
+                //     break;
+                // case 'A':
+                //     HandleInputCounts(key, "keydown");
+                //     writeToSerial(turbo ? "*a:400*" : '*a:200*');
+                //     break;
+                // case 'D':
+                //     HandleInputCounts(key, "keydown");
+                //     writeToSerial(turbo ? "*d:400*" : '*d:200*');
+                //     break;
                 case 'SHIFT':
                     printToConsole("TURBO!!!!\n");
                     turbo = true;
@@ -312,59 +324,82 @@
             "JoyLY": 0,
             "JoyRX": 0,
             "JoyRY": 0,
+            "ThrottleLeft": 0,
+            "ThrottleRight": 0,
         };
-        function HandleControllerInputCounts(key, pressed, value = 0) {
+        var holdingDownControllerAxes = [];
+        async function HandleControllerInputCounts(key, pressed, value = 0) {
             if (pressed) {
                 if (!holdingDownController.includes(key)) {
                     holdingDownController.push(key);
-                    console.log("pressed controller: " + key + value);
+                    // console.log("pressed controller: " + key + value);
                     switch (key) {
                         case 'dpadUp':
-                            writeToSerial(turbo ? "*w:400*" : '*w:200*');
+                            await writeToSerial(turbo ? "*w:400*" : '*w:200*');
                             break;
                         case 'dpadDown':
-                            writeToSerial(turbo ? "*s:400*" : '*s:200*');
+                            await writeToSerial(turbo ? "*s:400*" : '*s:200*');
                             break;
                         case 'dpadLeft':
-                            writeToSerial(turbo ? "*a:400*" : '*a:200*');
+                            await writeToSerial(turbo ? "*a:400*" : '*a:200*');
                             break;
                         case 'dpadRight':
-                            writeToSerial(turbo ? "*d:400*" : '*d:200*');
+                            await writeToSerial(turbo ? "*d:400*" : '*d:200*');
                             break;
                         case 'padDown':
                             printToConsole("TURBO!!!!\n");
                             turbo = true;
                             break;
                         case 'padRight':
-                            writeToSerial("*|:0*")
+                            await writeToSerial("*|:0*")
                             turbo = true;
                             break;
                         default:
                             break;
                     }
                 } else if (key == "ThrottleLeft" || key == "ThrottleRight") {
+                    AxisMemory[key] = value;
                     if (Math.abs(ThrottleMemory[key] - value) >= 0.05) {// don't detect tiny changes, causes too much data to be sent!
                         ThrottleMemory[key] = value;
-                        console.log("Throttle Change: " + key + " " + value);
+                        // console.log("Throttle Change: " + key + " " + value);
                         var scaledValue = Math.round(scale(value, 0, 1, 0, 400));
-                        switch (key) {
-                            case 'ThrottleRight':
-                                writeToSerial('*w:' + scaledValue + "*");
-                                break;
-                            case 'ThrottleLeft':
-                                writeToSerial('*s:' + scaledValue + "*");
-                                break;
 
-
-                            default:
-                                break;
+                        if (!holdingDownControllerAxes.includes(key)) {
+                            holdingDownControllerAxes.push(key);
+                        } else {
+                            // console.log("controlling: " + key);
                         }
+                        // switch (key) {
+                        //     case 'ThrottleRight':
+                        //         if (holdingDownControllerAxes.includes("JoyLX")) {//double input reverse
+                        //             // console.log("Double Input!!");
+                        //             // await HandleDoubleInput()
+                        //             break;
+                        //         }
+                        //         // await writeToSerial('*w:' + scaledValue + "*");
+                        //         break;
+                        //     case 'ThrottleLeft':
+                        //         if (holdingDownControllerAxes.includes("JoyLX")) {//double input reverse
+                        //             // console.log("Double Input!!");
+                        //             // await HandleDoubleInput()
+                        //             break;
+                        //         }
+                        //         // await writeToSerial('*s:' + scaledValue + "*");
+                        //         break;
+
+
+                        //     default:
+                        //         break;
+                        // }
 
                     }
 
                 }
             } else {
                 if (holdingDownController.includes(key)) {
+                    if (key == "ThrottleLeft" || key == "ThrottleRight") {
+                        holdingDownControllerAxes = holdingDownControllerAxes.filter(e => e !== key);
+                    }
                     holdingDownController = holdingDownController.filter(e => e !== key);
                     console.log("released controller: " + key);
                     switch (key) {
@@ -372,9 +407,15 @@
                         case 'dpadDown':
                         case 'dpadLeft':
                         case 'dpadRight':
+                            if (!holdingDownControllerAxes.includes("JoyLX")) {
+                                // await writeToSerial('*e:0*');
+                            }
+                            break;
+
                         case 'ThrottleLeft':
                         case 'ThrottleRight':
-                            writeToSerial('*e:0*');
+
+                            AxisMemory[key] = 0;
                             break;
                         case 'padDown':
                             printToConsole("No Turbo :(\n");
@@ -387,24 +428,132 @@
                 }
             }
         }
+        var MotorStates = {
+            "leftSpeed": 0,
+            "rightSpeed": 0,
+        }
+        async function HandleMotorControl(keyboard = true) {
+            var throttle = 0;
+            var steer = 0;
+            if (keyboard) {
+                    if (holdingDown.includes("W")) {
+                        throttle += turbo ? 1 : .5;
+                    }
+                    if (holdingDown.includes("A")) {
+                        steer += turbo ? 1 : .5;
+                    }
+                    if (holdingDown.includes("S")) {
+                        throttle -= turbo ? 1 : .5;
+                    }
+                    if (holdingDown.includes("D")) {
+                        steer -= turbo ? 1 : .5;
+                    }
+            } else {
+                throttle = AxisMemory["ThrottleRight"] > 0 ? AxisMemory["ThrottleRight"] : (AxisMemory["ThrottleLeft"] * -1);
+                steer = AxisMemory["JoyLX"]*-1;
+            }
+            const baseSpeed = -400;
+            const maxSpeed = 400;
 
-        function HandleControllerAxis(key, value) {
+            // Map throttle to the range [baseSpeed, maxSpeed]
+            let mappedThrottle = scale(throttle, -1, 1, baseSpeed, maxSpeed);
+
+            // Map steer to the range [-maxSpeed, maxSpeed]
+            let mappedSteer = scale(steer, -1, 1, -maxSpeed, maxSpeed);
+
+            // Calculate left and right speeds
+            let leftSpeed = mappedThrottle - mappedSteer;
+            let rightSpeed = mappedThrottle + mappedSteer;
+
+            // Clamp the speeds to the range [-maxSpeed, maxSpeed]
+            leftSpeed = Math.round(Math.min(Math.max(leftSpeed, -maxSpeed), maxSpeed));
+            rightSpeed = Math.round(Math.min(Math.max(rightSpeed, -maxSpeed), maxSpeed));
+
+            if (Math.abs(MotorStates["leftSpeed"] - leftSpeed) > 10) {//detect > 10 difference in current speed and target speed, send to arduino
+                await writeToSerial("*ls:" + leftSpeed + "*");
+            }
+            if (Math.abs(MotorStates["rightSpeed"] - rightSpeed) > 10) {//detect > 10 difference in current speed and target speed, send to arduino
+                await writeToSerial("*rs:" + rightSpeed + "*");
+            }
+            console.log("Left: " + leftSpeed + " Right: " + rightSpeed);
+            if (leftSpeed === 0 && rightSpeed === 0 && (MotorStates["rightSpeed"] !== 0 || MotorStates["leftSpeed"] !== 0)) {//one motor currently moving, all motors target 0, stop!
+                await writeToSerial("*e:0*");
+                console.log("Stopping");
+
+            }
+            MotorStates["leftSpeed"] = leftSpeed;
+            MotorStates["rightSpeed"] = rightSpeed;
+        }
+
+        async function HandleDoubleInput() {//returns true if double input handled
+            console.log("Active Keys:");
+            var Axis1, Axis2 = "";
+            // console.log(AxisMemory);
+            for (const [key, value] of Object.entries(AxisMemory)) {
+                if (value != 0) {
+                    Axis1 ? Axis2 = key : Axix1 = key;
+                }
+            }
+            const [leftSpeed, rightSpeed] = calculateSpeeds(AxisMemory["ThrottleRight"] > 0 ? AxisMemory["ThrottleRight"] : (AxisMemory["ThrottleLeft"] * -1), AxisMemory["JoyLX"]);
+            await writeToSerial("*ls:" + leftSpeed + "*");
+            await writeToSerial("*rs:" + rightSpeed + "*");
+        }
+        async function HandleControllerAxes(key, value) {
             if (Math.abs(AxisMemory[key] - value) >= 0.10) {// don't detect tiny changes, causes too much data to be sent!
-                console.log("Axis Change: " + key + " " + value);
+                // console.log("Axis Change: " + key + " " + value);
                 AxisMemory[key] = value;
-                var posval = value <= 0 ? value *-1 : value;
+                var posval = value <= 0 ? value * -1 : value;
                 var scaledValue = Math.round(scale(posval, 0, 1, 0, 400));
-                console.log("Axis Scaled: " + scaledValue);
+                // console.log("Axis Scaled: " + scaledValue);
                 switch (key) {
                     case 'JoyLX':
                         if (posval < 0.2) {//deadzone
-                            writeToSerial("*e:0*");
+                            holdingDownControllerAxes = holdingDownControllerAxes.filter(e => e !== key);
+                            AxisMemory[key] = 0;
+                            if (!holdingDownControllerAxes.includes("ThrottleLeft") || !holdingDownControllerAxes.includes("ThrottleRight")) {
+                                // await writeToSerial("*e:0*");
+                            }
+                            break;
                         }
                         if (value > 0 && posval > 0.2) {
-                            writeToSerial('*d:' + scaledValue + "*");
+
+                            if (!holdingDownControllerAxes.includes(key)) {
+                                holdingDownControllerAxes.push(key);
+
+                            } else {
+                                // console.log("controlling: " + key);
+                                if (holdingDownControllerAxes.includes("ThrottleLeft")) {//double input reverse
+                                    // console.log("Double Input!!");
+                                    // await HandleDoubleInput()
+                                    break;
+                                }
+                                if (holdingDownControllerAxes.includes("ThrottleRight")) {//double input
+                                    // console.log("Double Input!!");
+                                    // await HandleDoubleInput()
+                                    break;
+                                }
+                            }
+                            // writeToSerial('*d:' + scaledValue + "*");
                         }
                         if (value < 0 && posval > 0.2) {
-                            writeToSerial('*a:' + scaledValue + "*");
+
+                            if (!holdingDownControllerAxes.includes(key)) {
+                                holdingDownControllerAxes.push(key);
+
+                            } else {
+                                // console.log("controlling: " + key);
+                                if (holdingDownControllerAxes.includes("ThrottleLeft")) {//double input reverse
+                                    // console.log("Double Input!!");
+                                    // await HandleDoubleInput()
+                                    break;
+                                }
+                                if (holdingDownControllerAxes.includes("ThrottleRight")) {//double input
+                                    // console.log("Double Input!!");
+                                    // await HandleDoubleInput()
+                                    break;
+                                }
+                            }
+                            // await writeToSerial('*a:' + scaledValue + "*");
                         }
                         break;
                     default:
@@ -429,15 +578,64 @@
                         HandleControllerInputCounts(layout[index], button.pressed, button.value)
                     });
                     controller.axes.forEach((button, index) => {
-                        HandleControllerAxis(layout[index + 100], button)
+                        HandleControllerAxes(layout[index + 100], button)
                     });
                     // console.log(controller);
 
                 }
             });
+            HandleMotorControl()
         }
-        setInterval(HandleGameInputs, 100);
+        setInterval(function () {
+            HandleGameInputs(useKeyboard);
+        }, 100);
         //END OF GAMEPAD
+
+
+
+
+
+
+
+
+
+        //graveyard
+
+
+        function calculateSpeeds(throttle, steer) {//ChatGpt
+            const baseSpeed = 30;
+            const maxSpeed = 400;
+
+            // Map throttle to the range [baseSpeed, maxSpeed]
+            let mappedThrottle = scale(throttle, -1, 1, -400, 400);
+
+            // Map steer to the range [-maxSpeed, maxSpeed]
+            let mappedSteer = scale(steer, -1, 1, 400, 400);
+            console.log("Throttle: " + mappedThrottle);
+            console.log("Steer: " + mappedSteer);
+            //steer -400 throttle 400
+            //steer 400 throttle 
+            let leftSpeed, rightSpeed = 0;
+            if (steer > 0) {//steering Right
+                leftSpeed = mappedThrottle;
+                rightSpeed = mappedThrottle - mappedSteer;
+                rightSpeed = Math.min(Math.max(rightSpeed, mappedThrottle < 40 ? 40 : -40), maxSpeed);
+            } else {//Steering Left
+                leftSpeed = mappedThrottle - mappedSteer;
+                rightSpeed = mappedThrottle;
+                leftSpeed = Math.min(Math.max(leftSpeed, mappedThrottle < 40 ? 40 : -40), maxSpeed);
+
+            }
+            // Calculate left and right speeds
+            // let leftSpeed = mappedThrottle - mappedSteer;
+            // let rightSpeed = mappedThrottle + mappedSteer;
+
+            // Clamp the speeds to the range [-maxSpeed, maxSpeed]
+            // leftSpeed = Math.min(Math.max(leftSpeed, -maxSpeed), maxSpeed);
+            // rightSpeed = Math.min(Math.max(rightSpeed, -maxSpeed), maxSpeed);
+
+            return [leftSpeed, rightSpeed];
+        }
     </script>
 
 </body>
