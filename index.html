@@ -15,15 +15,15 @@
         <div class="row">
             <div class="col m-2">
                 <button id="connect" class="btn btn-primary">Connect</button>
-                <button onclick="writeToSerial('|')" class="btn btn-danger">!!STOP!!</button>
-                <button onclick="writeToSerial('e')" class="btn btn-warning">Stop Motors</button>
+                <button onclick="writeToSerial('*|:0*')" class="btn btn-danger">!!STOP!!</button>
+                <button onclick="writeToSerial('*e:0*')" class="btn btn-warning">Stop Motors</button>
             </div>
         </div>
         <div class="row">
             <div class="col m-2">
-                <button onclick="writeToSerial('c')" class="btn btn-secondary">Calibrate</button>
-                <button onclick="writeToSerial('q')" class="btn btn-secondary">Toggle Line Tracking</button>
-                <button onclick="writeToSerial('l')" class="btn btn-secondary">Toggle Distance Tracking</button>
+                <button onclick="writeToSerial('*c:0*')" class="btn btn-secondary">Calibrate</button>
+                <button onclick="writeToSerial('*q:0*')" class="btn btn-secondary">Toggle Line Tracking</button>
+                <button onclick="writeToSerial('*l:0*')" class="btn btn-secondary">Toggle Distance Tracking</button>
             </div>
         </div>
         <style>
@@ -162,7 +162,6 @@
             while ((match = regex.exec(messagepart)) !== null) {
                 result.push({ index: match[1], value: match[2] });
                 messagepart = messagepart.replace("*" + match[1] + ":" + match[2] + "*", "");
-                // console.log("var: " + match[1] + " val " + match[2]);
             }
             if (result.length > 0) {
                 result.forEach(element => {
@@ -223,19 +222,19 @@
             switch (key) {
                 case 'W':
                     HandleInputCounts(key, "keydown");
-                    writeToSerial(turbo ? "W" : 'w');
+                    writeToSerial(turbo ? "*w:400*" : '*w:200*');
                     break;
                 case 'S':
                     HandleInputCounts(key, "keydown");
-                    writeToSerial(turbo ? "S" : 's');
+                    writeToSerial(turbo ? "*s:400*" : '*s:200*');
                     break;
                 case 'A':
                     HandleInputCounts(key, "keydown");
-                    writeToSerial(turbo ? "A" : 'a');
+                    writeToSerial(turbo ? "*a:400*" : '*a:200*');
                     break;
                 case 'D':
                     HandleInputCounts(key, "keydown");
-                    writeToSerial(turbo ? "D" : 'd');
+                    writeToSerial(turbo ? "*d:400*" : '*d:200*');
                     break;
                 case 'SHIFT':
                     printToConsole("TURBO!!!!\n");
@@ -245,6 +244,8 @@
                 case 'CONTROL':
                 case 'TAB':
                 case 'F5':
+                case 'MEDIAPLAYPAUSE':
+                case 'META':
                     //do nothing
                     break;
 
@@ -266,7 +267,7 @@
                 case 'D':
                     HandleInputCounts(key, "keyup");
                     if (!CheckDoubleInputs(key)) {
-                        writeToSerial('e');
+                        writeToSerial('*e:0*');
                     }
                     break;
                 case 'SHIFT':
@@ -290,39 +291,77 @@
             1: "padRight",
             2: "padLeft",
             3: "padUp",
+            6: "ThrottleLeft",
+            7: "ThrottleRight",
             12: "dpadUp",
             13: "dpadDown",
             14: "dpadLeft",
             15: "dpadRight",
+            100: "JoyLX",
+            101: "JoyLY",
+            102: "JoyRX",
+            103: "JoyRY",
         };
         var holdingDownController = [];
-        function HandleControllerInputCounts(key, pressed) {
+        var ThrottleMemory = {
+            "ThrottleLeft": 0,
+            "ThrottleRight": 0,
+        };
+        var AxisMemory = {
+            "JoyLX": 0,
+            "JoyLY": 0,
+            "JoyRX": 0,
+            "JoyRY": 0,
+        };
+        function HandleControllerInputCounts(key, pressed, value = 0) {
             if (pressed) {
                 if (!holdingDownController.includes(key)) {
                     holdingDownController.push(key);
-                    console.log("pressed controller: " + key);
+                    console.log("pressed controller: " + key + value);
                     switch (key) {
                         case 'dpadUp':
-                            writeToSerial(turbo ? "W" : 'w');
+                            writeToSerial(turbo ? "*w:400*" : '*w:200*');
                             break;
                         case 'dpadDown':
-                            writeToSerial(turbo ? "S" : 's');
+                            writeToSerial(turbo ? "*s:400*" : '*s:200*');
                             break;
                         case 'dpadLeft':
-                            writeToSerial(turbo ? "A" : 'a');
+                            writeToSerial(turbo ? "*a:400*" : '*a:200*');
                             break;
                         case 'dpadRight':
-                            writeToSerial(turbo ? "D" : 'd');
+                            writeToSerial(turbo ? "*d:400*" : '*d:200*');
                             break;
                         case 'padDown':
                             printToConsole("TURBO!!!!\n");
                             turbo = true;
                             break;
-
-
+                        case 'padRight':
+                            writeToSerial("*|:0*")
+                            turbo = true;
+                            break;
                         default:
                             break;
                     }
+                } else if (key == "ThrottleLeft" || key == "ThrottleRight") {
+                    if (Math.abs(ThrottleMemory[key] - value) >= 0.05) {// don't detect tiny changes, causes too much data to be sent!
+                        ThrottleMemory[key] = value;
+                        console.log("Throttle Change: " + key + " " + value);
+                        var scaledValue = Math.round(scale(value, 0, 1, 0, 400));
+                        switch (key) {
+                            case 'ThrottleRight':
+                                writeToSerial('*w:' + scaledValue + "*");
+                                break;
+                            case 'ThrottleLeft':
+                                writeToSerial('*s:' + scaledValue + "*");
+                                break;
+
+
+                            default:
+                                break;
+                        }
+
+                    }
+
                 }
             } else {
                 if (holdingDownController.includes(key)) {
@@ -333,7 +372,9 @@
                         case 'dpadDown':
                         case 'dpadLeft':
                         case 'dpadRight':
-                            writeToSerial('e');
+                        case 'ThrottleLeft':
+                        case 'ThrottleRight':
+                            writeToSerial('*e:0*');
                             break;
                         case 'padDown':
                             printToConsole("No Turbo :(\n");
@@ -345,6 +386,33 @@
                     }
                 }
             }
+        }
+
+        function HandleControllerAxis(key, value) {
+            if (Math.abs(AxisMemory[key] - value) >= 0.10) {// don't detect tiny changes, causes too much data to be sent!
+                console.log("Axis Change: " + key + " " + value);
+                AxisMemory[key] = value;
+                var posval = value <= 0 ? value *-1 : value;
+                var scaledValue = Math.round(scale(posval, 0, 1, 0, 400));
+                console.log("Axis Scaled: " + scaledValue);
+                switch (key) {
+                    case 'JoyLX':
+                        if (posval < 0.2) {//deadzone
+                            writeToSerial("*e:0*");
+                        }
+                        if (value > 0 && posval > 0.2) {
+                            writeToSerial('*d:' + scaledValue + "*");
+                        }
+                        if (value < 0 && posval > 0.2) {
+                            writeToSerial('*a:' + scaledValue + "*");
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+
         }
         function CheckDoubleControllerInputs(key) {
             return holdingDownController.includes(key);
@@ -358,7 +426,10 @@
             gamepads.forEach((controller) => {
                 if (controller && controller.id == "Xbox 360 Controller (XInput STANDARD GAMEPAD)") {
                     controller.buttons.forEach((button, index) => {
-                        HandleControllerInputCounts(layout[index], button.pressed)
+                        HandleControllerInputCounts(layout[index], button.pressed, button.value)
+                    });
+                    controller.axes.forEach((button, index) => {
+                        HandleControllerAxis(layout[index + 100], button)
                     });
                     // console.log(controller);
 
