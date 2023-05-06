@@ -16,14 +16,34 @@
             <div class="col-6">
                 <div class="row">
                     <div class="col m-2">
-                        <button id="connectbutton" class="btn btn-primary">Connect</button>
-                        <button id="killbutton" onclick="writeToSerial('*|:0*')"
-                            class="btn btn-danger disabled">!!STOP!!</button>
-                        <button id="stopbutton" onclick="writeToSerial('*e:0*')" class="btn btn-warning disabled">Stop
-                            Motors</button>
-                        <button id="calibratebutton" onclick="writeToSerial('*c:0*')"
-                            class="btn btn-secondary disabled">Calibrate</button>
-                        <br><br>
+                        <br>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-3">
+                                    <button id="connectbutton" class="btn btn-primary w-auto">Connect</button>
+                                </div>
+                                <div class="col">
+                                    <select class="form-select text-white bg-dark" onchange="HandleZumoSelector()" disabled
+                                        id="ZumoSelector">
+                                        <option selected value="6969">Jerome</option>
+                                        <option value="9696">Wayne</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+
+                        <div class="">
+                            <button id="killbutton" onclick="writeToSerial('*|:0*')"
+                                class="btn btn-danger disabled mx-3">!!STOP!!</button>
+                            <button id="stopbutton" onclick="writeToSerial('*e:0*')"
+                                class="btn btn-warning disabled mx-3">Stop
+                                Motors</button>
+                            <button id="calibratebutton" onclick="writeToSerial('*c:0*')"
+                                class="btn btn-secondary disabled mx-3">Calibrate</button>
+                        </div>
+                        <br>
+
                         <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
                             <input type="checkbox" class="btn-check disabled" id="ConnectedUSBCheck" autocomplete="off">
                             <label class="btn btn-outline-primary disabled" for="btnradio2">Connection USB</label>
@@ -72,7 +92,9 @@
                         </div>
                     </div>
                 </div>
+                <br>
                 Lijnsensoren:
+
                 <div class="row">
                     <div class="col">
                         <div class="bar distancebar">
@@ -120,7 +142,7 @@
             },
         });
 
-        var port, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false;
+        var port, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false, ATMode;
         //COMM
         connectButton.addEventListener('click', () => {
             connect();
@@ -134,10 +156,12 @@
                         notyf.success("Connected USB");
                         document.getElementById("ConnectedUSBCheck").checked = true;
                         document.getElementById("connectbutton").classList.add("disabled");
+                        document.getElementById("ZumoSelector").disabled = false;
                     } else {
                         notyf.error("Disconnected USB");
                         document.getElementById("ConnectedUSBCheck").checked = false;
                         document.getElementById("connectbutton").classList.remove("disabled");
+                        document.getElementById("ZumoSelector").disabled = true;
                         port = null;
                         HandleUiConnections("Zumo", false, true);
                     }
@@ -195,13 +219,19 @@
                 console.error('Error connecting to serial device:', error);
             }
         }
-        async function writeToSerial(data) {
+        function HandleZumoSelector() {
+            const dropdown = document.getElementById("ZumoSelector")
+            ChangeChannel(dropdown.value);
+        }
+        async function writeToSerial(data, AT) {
+            if (ATMode && !AT) return;
             if (!port) return;
             if (!port.writable) {
                 HandleUiConnections("USB", false);
                 console.error('Serial port not writable');
                 return;
             }
+            console.log(data);
 
             try {
                 const writer = port.writable.getWriter();
@@ -292,17 +322,44 @@
 
 
         //WEB CONSOLE
-        function printToConsole(msg) {
+        var ATLogs = "";
+        var Channel = 69;
+        var ChangingChannel = false;
+        async function printToConsole(msg) {
             // console.log(msg)
             outputElement.textContent += msg
             outputElement.scrollTo(0, outputElement.scrollHeight)
+            if (ATMode) {
+                ATLogs += msg;
+                if (ATLogs == "OK\r") {
+                    ATLogs = "";
+                    if (!ChangingChannel) {
+                        await writeToSerial("ATID " + Channel + "\r", true);
+                        ChangingChannel = true;
+                    } else {
+                        notyf.success("Changed Channels");
+                        ChangingChannel = false;
+                        ATMode = false;
+                        await setTimeout(async function () {
+                            await writeToSerial("ATCN \r", true)
+                        }, 500);
+                    }
+                }
+            }
         }
         //END OF WEB CONSOLE
+        async function ChangeChannel(channel) {
+            Channel = channel;
+            ATMode = true;
+            await setTimeout(async function () {
+                await writeToSerial("+++", true);
+            }, 1000);
 
+        }
         //KEYBOARD
         window.addEventListener('keydown', (event) => {
             if (event.repeat) return;
-            console.log(holdingDown);
+            // console.log(holdingDown);
             const key = event.key.toUpperCase();
             switch (key) {
                 case 'SHIFT':
@@ -323,11 +380,11 @@
                     writeToSerial(key.toLowerCase());
                     break;
             }
-            console.log("down: " + key)
+            // console.log("down: " + key)
         });
 
         window.addEventListener('keyup', (event) => {
-            console.log(holdingDown);
+            // console.log(holdingDown);
             const key = event.key.toUpperCase();
             switch (key) {
                 case 'W':
@@ -407,6 +464,9 @@
                         case 'dpadRight':
                             // await writeToSerial(turbo ? "*d:400*" : '*d:200*');
                             break;
+                        case 'JoyLPress':
+                            await writeToSerial("*h:1*");
+                            break;
                         case 'padDown':
                             printToConsole("TURBO!!!!\n");
                             turbo = true;
@@ -444,7 +504,7 @@
                     } else {
                         holdingDownController = holdingDownController.filter(e => e !== key);
                     }
-                    console.log("released controller: " + key);
+                    // console.log("released controller: " + key);
                     switch (key) {
                         case 'dpadUp':
                         case 'dpadDown':
