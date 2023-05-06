@@ -10,76 +10,97 @@
     <title>Zumo Remote</title>
 </head>
 
-<body class="bg-dark" style="overflow:hidden">
-    <div class="">
+<body class="bg-dark text-white">
+    <div class="container m-0 p-0">
         <div class="row">
-            <div class="col m-2">
-                <button id="connect" class="btn btn-primary">Connect</button>
-                <button onclick="writeToSerial('*|:0*')" class="btn btn-danger">!!STOP!!</button>
-                <button onclick="writeToSerial('*e:0*')" class="btn btn-warning">Stop Motors</button>
-                <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                    <input type="radio" class="btn-check" name="InputType" onchange="SwitchInputs()" value="KB" id="KB" autocomplete="off" checked>
-                    <label class="btn btn-outline-primary" for="btnradio1">Keyboard</label>
-                  
-                    <input type="radio" class="btn-check" name="InputType" onchange="SwitchInputs()" value="CTRLR" id="CTRLR" autocomplete="off">
-                    <label class="btn btn-outline-primary" for="btnradio2">Controller</label>
-                  </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col m-2">
-                <button onclick="writeToSerial('*c:0*')" class="btn btn-secondary">Calibrate</button>
-                <button onclick="writeToSerial('*q:0*')" class="btn btn-secondary">Toggle Line Tracking</button>
-                <button onclick="writeToSerial('*l:0*')" class="btn btn-secondary">Toggle Distance Tracking</button>
-            </div>
-        </div>
-        <style>
-            .distancebar {
-                margin-left: 5px;
-                float: left;
-                position: relative;
-                background-color: white;
-                width: 30px;
-                height: 100px;
-                border-radius: 8px;
-            }
+            <div class="col-6">
+                <div class="row">
+                    <div class="col m-2">
+                        <button id="connectbutton" class="btn btn-primary">Connect</button>
+                        <button id="killbutton" onclick="writeToSerial('*|:0*')"
+                            class="btn btn-danger disabled">!!STOP!!</button>
+                        <button id="stopbutton" onclick="writeToSerial('*e:0*')" class="btn btn-warning disabled">Stop
+                            Motors</button>
+                        <button id="calibratebutton" onclick="writeToSerial('*c:0*')"
+                            class="btn btn-secondary disabled">Calibrate</button>
+                        <br><br>
+                        <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                            <input type="checkbox" class="btn-check disabled" id="ConnectedUSBCheck" autocomplete="off">
+                            <label class="btn btn-outline-primary disabled" for="btnradio2">Connection USB</label>
+                            <input type="checkbox" class="btn-check disabled" id="ConnectedZumoCheck"
+                                autocomplete="off">
+                            <label class="btn btn-outline-primary disabled" for="btnradio2">Connection Zumo</label>
+                            <input type="checkbox" class="btn-check disabled" id="CTRLR" autocomplete="off">
+                            <label class="btn btn-outline-primary disabled" for="btnradio2">Controller</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col m-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" onclick="writeToSerial('*q:0*')" type="checkbox"
+                                id="LineTracking">
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Line Tracking</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" onclick="writeToSerial('*l:0*')"
+                                id="DistanceTracking">
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Distance Tracking</label>
+                        </div>
+                    </div>
+                </div>
+                Afstandssensoren:
+                <div class="row">
+                    <div class="col">
+                        <div class="bar distancebar">
+                            <div id="PSL" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="PSMLL" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="PSML" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="PSMR" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="PSMRR" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="PSR" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                    </div>
+                </div>
+                Lijnsensoren:
+                <div class="row">
+                    <div class="col">
+                        <div class="bar distancebar">
+                            <div id="LSL" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="LSML" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="LSM" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="LSMR" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="LSR" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                    </div>
+                </div>
 
-            .innerdistancebar {
-                position: absolute;
-                bottom: 0px;
-                background-color: red;
-                width: 100%;
-                border-radius: 8px;
-            }
-        </style>
-        <div class="row">
-            <div class="col">
-                <div class="bar distancebar">
-                    <div id="PSL" class="innerdistancebar" style="height:40%;"></div>
-                </div>
-                <div class="bar distancebar">
-                    <div id="PSMLL" class="innerdistancebar" style="height:40%;"></div>
-                </div>
-                <div class="bar distancebar">
-                    <div id="PSML" class="innerdistancebar" style="height:40%;"></div>
-                </div>
-                <div class="bar distancebar">
-                    <div id="PSMR" class="innerdistancebar" style="height:40%;"></div>
-                </div>
-                <div class="bar distancebar">
-                    <div id="PSMRR" class="innerdistancebar" style="height:40%;"></div>
-                </div>
-                <div class="bar distancebar">
-                    <div id="PSR" class="innerdistancebar" style="height:40%;"></div>
-                </div>
-            </div>
-        </div>
 
-        <div class="row">
-            <div class="col">
-                <div class="mx-4 scrollable-window">
-                    <pre style="max-height: 600px;overflow-y:auto;overflow-x:hidden;max-width:400px;color:white;"
-                        id="output"></pre>
+            </div>
+            <div class="col-6">
+                <div class="col">
+                    <div class="mx-4">
+                        <pre style="max-height: 600px;overflow-y:hidden;overflow-x:hidden;color:white;width:100%;"
+                            id="output"></pre>
+                    </div>
                 </div>
             </div>
         </div>
@@ -90,7 +111,7 @@
         integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
         crossorigin="anonymous"></script>
     <script>
-        const connectButton = document.getElementById('connect');
+        const connectButton = document.getElementById('connectbutton');
         const outputElement = document.getElementById('output');
         var notyf = new Notyf({
             position: {
@@ -99,16 +120,50 @@
             },
         });
 
-        var port, turbo, messagepart = "", lastmessage = "", recieving = false,useKeyboard = true;
+        var port, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false;
         //COMM
         connectButton.addEventListener('click', () => {
             connect();
         });
 
-
-        function SwitchInputs() {
-            useKeyboard = document.getElementById("KB").checked
+        function HandleUiConnections(type, status, internal = false) {
+            if (type == "USB") {
+                if ((status != connectedUSB)) {
+                    connectedUSB = status;
+                    if (status) {
+                        notyf.success("Connected USB");
+                        document.getElementById("ConnectedUSBCheck").checked = true;
+                        document.getElementById("connectbutton").classList.add("disabled");
+                    } else {
+                        notyf.error("Disconnected USB");
+                        document.getElementById("ConnectedUSBCheck").checked = false;
+                        document.getElementById("connectbutton").classList.remove("disabled");
+                        port = null;
+                        HandleUiConnections("Zumo", false, true);
+                    }
+                }
+            } else {
+                if ((status != connectedZumo) && (internal || connectedUSB)) {
+                    connectedZumo = status;
+                    if (status) {
+                        notyf.success("Connected Zumo");
+                        document.getElementById("ConnectedZumoCheck").checked = true;
+                        document.getElementById("stopbutton").classList.remove("disabled");
+                        document.getElementById("killbutton").classList.remove("disabled");
+                        document.getElementById("calibratebutton").classList.remove("disabled");
+                        // writeToSerial("*bt:0*");
+                        writeToSerial("*init:0*")
+                    } else {
+                        notyf.error("Disconnected Zumo");
+                        document.getElementById("ConnectedZumoCheck").checked = false;
+                        document.getElementById("stopbutton").classList.add("disabled");
+                        document.getElementById("killbutton").classList.add("disabled");
+                        document.getElementById("calibratebutton").classList.add("disabled");
+                    }
+                }
+            }
         }
+
         async function connect() {
             if (!navigator.serial) {
                 outputElement.textContent = 'Web Serial API not supported.';
@@ -117,7 +172,7 @@
             try {
                 port = await navigator.serial.requestPort();
                 await port.open({ baudRate: 115200 });
-                notyf.success("Connected!");
+                HandleUiConnections("USB", true);
                 while (port.readable) {
                     try {
                         const reader = port.readable.getReader();
@@ -130,7 +185,7 @@
                         printToConsole(data);
                         HandleSpecialMessages(data);
                     } catch (error) {
-                        notyf.error("Disconnected :(");
+                        HandleUiConnections("USB", false);
                         console.error('Error reading from serial port:', error);
                         break;
                     }
@@ -143,6 +198,7 @@
         async function writeToSerial(data) {
             if (!port) return;
             if (!port.writable) {
+                HandleUiConnections("USB", false);
                 console.error('Serial port not writable');
                 return;
             }
@@ -188,7 +244,25 @@
                         case "PSR":
                             document.getElementById(index).style.height = scale(value, 0, 6, 0, 100) + "%";
                             break;
-
+                        case "LSL":
+                        case "LSML":
+                        case "LSM":
+                        case "LSMR":
+                        case "LSR":
+                            document.getElementById(index).style.height = scale(value, 0, 1000, 0, 100) + "%";
+                            break;
+                        case "hb":
+                            heartBeat = parseInt(value);
+                            break;
+                        case "bt":
+                            outputElement.textContent = "";
+                            break;
+                        case "initls":
+                            document.getElementById("LineTracking").checked = value == "0" ? false : true;
+                            break;
+                        case "initps":
+                            document.getElementById("DistanceTracking").checked = value == "0" ? false : true;
+                            break;
                         default:
                             break;
                     }
@@ -196,7 +270,6 @@
             }
             return result;
         }
-
         //END OF DATA EXTRACTION
 
         //KEYBOARD FUNCTIONS
@@ -232,22 +305,6 @@
             console.log(holdingDown);
             const key = event.key.toUpperCase();
             switch (key) {
-                // case 'W':
-                //     HandleInputCounts(key, "keydown");
-                //     writeToSerial(turbo ? "*w:400*" : '*w:200*');
-                //     break;
-                // case 'S':
-                //     HandleInputCounts(key, "keydown");
-                //     writeToSerial(turbo ? "*s:400*" : '*s:200*');
-                //     break;
-                // case 'A':
-                //     HandleInputCounts(key, "keydown");
-                //     writeToSerial(turbo ? "*a:400*" : '*a:200*');
-                //     break;
-                // case 'D':
-                //     HandleInputCounts(key, "keydown");
-                //     writeToSerial(turbo ? "*d:400*" : '*d:200*');
-                //     break;
                 case 'SHIFT':
                     printToConsole("TURBO!!!!\n");
                     turbo = true;
@@ -278,9 +335,9 @@
                 case 'S':
                 case 'D':
                     HandleInputCounts(key, "keyup");
-                    if (!CheckDoubleInputs(key)) {
-                        writeToSerial('*e:0*');
-                    }
+                    // if (!CheckDoubleInputs(key)) {
+                    //     writeToSerial('*e:0*');
+                    // }
                     break;
                 case 'SHIFT':
                     printToConsole("No Turbo :(\n");
@@ -305,6 +362,8 @@
             3: "padUp",
             6: "ThrottleLeft",
             7: "ThrottleRight",
+            10: "JoyLPress",
+            11: "JoyRPress",
             12: "dpadUp",
             13: "dpadDown",
             14: "dpadLeft",
@@ -331,20 +390,22 @@
         async function HandleControllerInputCounts(key, pressed, value = 0) {
             if (pressed) {
                 if (!holdingDownController.includes(key)) {
-                    holdingDownController.push(key);
+                    if (key != "ThrottleLeft" && key != "ThrottleRight") {
+                        holdingDownController.push(key);
+                    }
                     // console.log("pressed controller: " + key + value);
                     switch (key) {
                         case 'dpadUp':
-                            await writeToSerial(turbo ? "*w:400*" : '*w:200*');
+                            // await writeToSerial(turbo ? "*w:400*" : '*w:200*');
                             break;
                         case 'dpadDown':
-                            await writeToSerial(turbo ? "*s:400*" : '*s:200*');
+                            // await writeToSerial(turbo ? "*s:400*" : '*s:200*');
                             break;
                         case 'dpadLeft':
-                            await writeToSerial(turbo ? "*a:400*" : '*a:200*');
+                            // await writeToSerial(turbo ? "*a:400*" : '*a:200*');
                             break;
                         case 'dpadRight':
-                            await writeToSerial(turbo ? "*d:400*" : '*d:200*');
+                            // await writeToSerial(turbo ? "*d:400*" : '*d:200*');
                             break;
                         case 'padDown':
                             printToConsole("TURBO!!!!\n");
@@ -354,67 +415,47 @@
                             await writeToSerial("*|:0*")
                             turbo = true;
                             break;
+                        case "ThrottleLeft":
+                            AxisMemory[key] = value;
+                            if (!holdingDownControllerAxes.includes(key)) {
+                                holdingDownControllerAxes.push(key);
+                            }
+                            break;
+                        case "ThrottleRight":
+                            AxisMemory[key] = value;
+                            if (!holdingDownControllerAxes.includes(key)) {
+                                holdingDownControllerAxes.push(key);
+                            }
                         default:
                             break;
                     }
                 } else if (key == "ThrottleLeft" || key == "ThrottleRight") {
                     AxisMemory[key] = value;
-                    if (Math.abs(ThrottleMemory[key] - value) >= 0.05) {// don't detect tiny changes, causes too much data to be sent!
-                        ThrottleMemory[key] = value;
-                        // console.log("Throttle Change: " + key + " " + value);
-                        var scaledValue = Math.round(scale(value, 0, 1, 0, 400));
-
+                    if (Math.abs(AxisMemory[key] - value) >= 0.05) {// don't detect tiny changes, causes too much data to be sent!
                         if (!holdingDownControllerAxes.includes(key)) {
                             holdingDownControllerAxes.push(key);
-                        } else {
-                            // console.log("controlling: " + key);
                         }
-                        // switch (key) {
-                        //     case 'ThrottleRight':
-                        //         if (holdingDownControllerAxes.includes("JoyLX")) {//double input reverse
-                        //             // console.log("Double Input!!");
-                        //             // await HandleDoubleInput()
-                        //             break;
-                        //         }
-                        //         // await writeToSerial('*w:' + scaledValue + "*");
-                        //         break;
-                        //     case 'ThrottleLeft':
-                        //         if (holdingDownControllerAxes.includes("JoyLX")) {//double input reverse
-                        //             // console.log("Double Input!!");
-                        //             // await HandleDoubleInput()
-                        //             break;
-                        //         }
-                        //         // await writeToSerial('*s:' + scaledValue + "*");
-                        //         break;
-
-
-                        //     default:
-                        //         break;
-                        // }
-
                     }
-
                 }
             } else {
-                if (holdingDownController.includes(key)) {
+                if (holdingDownController.includes(key) || holdingDownControllerAxes.includes(key)) {
                     if (key == "ThrottleLeft" || key == "ThrottleRight") {
                         holdingDownControllerAxes = holdingDownControllerAxes.filter(e => e !== key);
+                    } else {
+                        holdingDownController = holdingDownController.filter(e => e !== key);
                     }
-                    holdingDownController = holdingDownController.filter(e => e !== key);
                     console.log("released controller: " + key);
                     switch (key) {
                         case 'dpadUp':
                         case 'dpadDown':
                         case 'dpadLeft':
                         case 'dpadRight':
-                            if (!holdingDownControllerAxes.includes("JoyLX")) {
-                                // await writeToSerial('*e:0*');
-                            }
+                            // if (!holdingDownControllerAxes.includes("JoyLX")) {
+                            //     await writeToSerial('*e:0*');
+                            // }
                             break;
-
                         case 'ThrottleLeft':
                         case 'ThrottleRight':
-
                             AxisMemory[key] = 0;
                             break;
                         case 'padDown':
@@ -435,28 +476,44 @@
         async function HandleMotorControl(keyboard = true) {
             var throttle = 0;
             var steer = 0;
-            if (keyboard) {
-                    if (holdingDown.includes("W")) {
-                        throttle += turbo ? 1 : .5;
-                    }
-                    if (holdingDown.includes("A")) {
-                        steer += turbo ? 1 : .5;
-                    }
-                    if (holdingDown.includes("S")) {
-                        throttle -= turbo ? 1 : .5;
-                    }
-                    if (holdingDown.includes("D")) {
-                        steer -= turbo ? 1 : .5;
-                    }
-            } else {
-                throttle = AxisMemory["ThrottleRight"] > 0 ? AxisMemory["ThrottleRight"] : (AxisMemory["ThrottleLeft"] * -1);
-                steer = AxisMemory["JoyLX"]*-1;
+            //KEYBOARD INPUT
+            if (keyboard && holdingDown.length !== 0) {
+                if (holdingDown.includes("W")) {
+                    throttle += turbo ? 1 : .5;
+                }
+                if (holdingDown.includes("A")) {
+                    steer += turbo ? 1 : .5;
+                }
+                if (holdingDown.includes("S")) {
+                    throttle -= turbo ? 1 : .5;
+                }
+                if (holdingDown.includes("D")) {
+                    steer -= turbo ? 1 : .5;
+                }
+            } else if (holdingDownController.length !== 0) {//DPAD INPUT
+                if (holdingDownController.includes("dpadDown")) {
+                    throttle -= turbo ? 1 : .5;
+                }
+                if (holdingDownController.includes("dpadUp")) {
+                    throttle += turbo ? 1 : .5;
+                }
+                if (holdingDownController.includes("dpadLeft")) {
+                    steer += turbo ? 1 : .5;
+                }
+                if (holdingDownController.includes("dpadRight")) {
+                    steer -= turbo ? 1 : .5;
+                }
+            } else if (holdingDownControllerAxes.length !== 0) {//JOY INPUT
+                throttle = AxisMemory["ThrottleRight"] !== 0 ? AxisMemory["ThrottleRight"] : (AxisMemory["ThrottleLeft"] * -1);
+                steer = AxisMemory["JoyLX"] * -1;
             }
-            const baseSpeed = -400;
-            const maxSpeed = 400;
 
-            // Map throttle to the range [baseSpeed, maxSpeed]
-            let mappedThrottle = scale(throttle, -1, 1, baseSpeed, maxSpeed);
+            const maxSpeed = 400;
+            if (throttle < 0) {
+                steer = steer * -1
+            }
+            // Map throttle to the range [-maxSpeed, maxSpeed]
+            let mappedThrottle = scale(throttle, -1, 1, -maxSpeed, maxSpeed);
 
             // Map steer to the range [-maxSpeed, maxSpeed]
             let mappedSteer = scale(steer, -1, 1, -maxSpeed, maxSpeed);
@@ -475,29 +532,15 @@
             if (Math.abs(MotorStates["rightSpeed"] - rightSpeed) > 10) {//detect > 10 difference in current speed and target speed, send to arduino
                 await writeToSerial("*rs:" + rightSpeed + "*");
             }
-            console.log("Left: " + leftSpeed + " Right: " + rightSpeed);
+            // console.log("Left: " + leftSpeed + " Right: " + rightSpeed);
             if (leftSpeed === 0 && rightSpeed === 0 && (MotorStates["rightSpeed"] !== 0 || MotorStates["leftSpeed"] !== 0)) {//one motor currently moving, all motors target 0, stop!
                 await writeToSerial("*e:0*");
-                console.log("Stopping");
-
+                // console.log("Stopping");
             }
             MotorStates["leftSpeed"] = leftSpeed;
             MotorStates["rightSpeed"] = rightSpeed;
         }
 
-        async function HandleDoubleInput() {//returns true if double input handled
-            console.log("Active Keys:");
-            var Axis1, Axis2 = "";
-            // console.log(AxisMemory);
-            for (const [key, value] of Object.entries(AxisMemory)) {
-                if (value != 0) {
-                    Axis1 ? Axis2 = key : Axix1 = key;
-                }
-            }
-            const [leftSpeed, rightSpeed] = calculateSpeeds(AxisMemory["ThrottleRight"] > 0 ? AxisMemory["ThrottleRight"] : (AxisMemory["ThrottleLeft"] * -1), AxisMemory["JoyLX"]);
-            await writeToSerial("*ls:" + leftSpeed + "*");
-            await writeToSerial("*rs:" + rightSpeed + "*");
-        }
         async function HandleControllerAxes(key, value) {
             if (Math.abs(AxisMemory[key] - value) >= 0.10) {// don't detect tiny changes, causes too much data to be sent!
                 // console.log("Axis Change: " + key + " " + value);
@@ -510,50 +553,17 @@
                         if (posval < 0.2) {//deadzone
                             holdingDownControllerAxes = holdingDownControllerAxes.filter(e => e !== key);
                             AxisMemory[key] = 0;
-                            if (!holdingDownControllerAxes.includes("ThrottleLeft") || !holdingDownControllerAxes.includes("ThrottleRight")) {
-                                // await writeToSerial("*e:0*");
-                            }
                             break;
                         }
                         if (value > 0 && posval > 0.2) {
-
                             if (!holdingDownControllerAxes.includes(key)) {
                                 holdingDownControllerAxes.push(key);
-
-                            } else {
-                                // console.log("controlling: " + key);
-                                if (holdingDownControllerAxes.includes("ThrottleLeft")) {//double input reverse
-                                    // console.log("Double Input!!");
-                                    // await HandleDoubleInput()
-                                    break;
-                                }
-                                if (holdingDownControllerAxes.includes("ThrottleRight")) {//double input
-                                    // console.log("Double Input!!");
-                                    // await HandleDoubleInput()
-                                    break;
-                                }
                             }
-                            // writeToSerial('*d:' + scaledValue + "*");
                         }
                         if (value < 0 && posval > 0.2) {
-
                             if (!holdingDownControllerAxes.includes(key)) {
                                 holdingDownControllerAxes.push(key);
-
-                            } else {
-                                // console.log("controlling: " + key);
-                                if (holdingDownControllerAxes.includes("ThrottleLeft")) {//double input reverse
-                                    // console.log("Double Input!!");
-                                    // await HandleDoubleInput()
-                                    break;
-                                }
-                                if (holdingDownControllerAxes.includes("ThrottleRight")) {//double input
-                                    // console.log("Double Input!!");
-                                    // await HandleDoubleInput()
-                                    break;
-                                }
                             }
-                            // await writeToSerial('*a:' + scaledValue + "*");
                         }
                         break;
                     default:
@@ -563,24 +573,25 @@
             }
 
         }
-        function CheckDoubleControllerInputs(key) {
-            return holdingDownController.includes(key);
-        }
         //END OF GAMEPAD FUNCTIONS
 
 
         //GAMEPAD
+        var foundPad = false;
         function HandleGameInputs() {
             var gamepads = navigator.getGamepads();
             gamepads.forEach((controller) => {
                 if (controller && controller.id == "Xbox 360 Controller (XInput STANDARD GAMEPAD)") {
+                    if (!foundPad) {
+                        foundPad = true
+                        document.getElementById("CTRLR").checked = true;
+                    }
                     controller.buttons.forEach((button, index) => {
                         HandleControllerInputCounts(layout[index], button.pressed, button.value)
                     });
                     controller.axes.forEach((button, index) => {
                         HandleControllerAxes(layout[index + 100], button)
                     });
-                    // console.log(controller);
 
                 }
             });
@@ -591,53 +602,42 @@
         }, 100);
         //END OF GAMEPAD
 
-
-
-
-
-
-
-
-
-        //graveyard
-
-
-        function calculateSpeeds(throttle, steer) {//ChatGpt
-            const baseSpeed = 30;
-            const maxSpeed = 400;
-
-            // Map throttle to the range [baseSpeed, maxSpeed]
-            let mappedThrottle = scale(throttle, -1, 1, -400, 400);
-
-            // Map steer to the range [-maxSpeed, maxSpeed]
-            let mappedSteer = scale(steer, -1, 1, 400, 400);
-            console.log("Throttle: " + mappedThrottle);
-            console.log("Steer: " + mappedSteer);
-            //steer -400 throttle 400
-            //steer 400 throttle 
-            let leftSpeed, rightSpeed = 0;
-            if (steer > 0) {//steering Right
-                leftSpeed = mappedThrottle;
-                rightSpeed = mappedThrottle - mappedSteer;
-                rightSpeed = Math.min(Math.max(rightSpeed, mappedThrottle < 40 ? 40 : -40), maxSpeed);
-            } else {//Steering Left
-                leftSpeed = mappedThrottle - mappedSteer;
-                rightSpeed = mappedThrottle;
-                leftSpeed = Math.min(Math.max(leftSpeed, mappedThrottle < 40 ? 40 : -40), maxSpeed);
-
-            }
-            // Calculate left and right speeds
-            // let leftSpeed = mappedThrottle - mappedSteer;
-            // let rightSpeed = mappedThrottle + mappedSteer;
-
-            // Clamp the speeds to the range [-maxSpeed, maxSpeed]
-            // leftSpeed = Math.min(Math.max(leftSpeed, -maxSpeed), maxSpeed);
-            // rightSpeed = Math.min(Math.max(rightSpeed, -maxSpeed), maxSpeed);
-
-            return [leftSpeed, rightSpeed];
+        const HeartBeatTime = 1000;
+        async function CheckHeartBeat() {
+            await writeToSerial("*hb:0*");
+            var OldHeartBeat = heartBeat
+            setTimeout(function () {
+                if (OldHeartBeat == heartBeat) {
+                    HandleUiConnections("Zumo", false);
+                } else {
+                    HandleUiConnections("Zumo", true);
+                }
+            }, HeartBeatTime + 500);
         }
+        setInterval(function () {
+            CheckHeartBeat();
+        }, HeartBeatTime);
     </script>
 
+    <style>
+        .distancebar {
+            margin-left: 5px;
+            float: left;
+            position: relative;
+            background-color: white;
+            width: 30px;
+            height: 100px;
+            border-radius: 8px;
+        }
+
+        .innerdistancebar {
+            position: absolute;
+            bottom: 0px;
+            background-color: red;
+            width: 100%;
+            border-radius: 8px;
+        }
+    </style>
 </body>
 
 </html>
