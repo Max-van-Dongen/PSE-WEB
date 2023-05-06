@@ -13,16 +13,16 @@
 <body class="bg-dark text-white">
     <div class="container m-0 p-0">
         <div class="row">
-            <div class="col-6">
+            <div class="col-5 my-2 mx-4">
                 <div class="row">
-                    <div class="col m-2">
+                    <div class="col">
                         <br>
-                        <div class="container">
+                        <div class="">
                             <div class="row">
                                 <div class="col-3">
                                     <button id="connectbutton" class="btn btn-primary w-auto">Connect</button>
                                 </div>
-                                <div class="col">
+                                <div class="col-4">
                                     <select class="form-select text-white bg-dark" onchange="HandleZumoSelector()"
                                         disabled id="ZumoSelector">
                                         <option selected value="6969">Zumo-010</option>
@@ -35,7 +35,7 @@
 
                         <div class="">
                             <button id="killbutton" onclick="writeToSerial('*|:0*')"
-                                class="btn btn-danger disabled mx-3">!!STOP!!</button>
+                                class="btn btn-danger disabled">!!STOP!!</button>
                             <button id="stopbutton" onclick="writeToSerial('*e:0*')"
                                 class="btn btn-warning disabled mx-3">Stop
                                 Motors</button>
@@ -58,6 +58,11 @@
                 <div class="row">
                     <div class="col m-2">
                         <div class="form-check form-switch">
+                            <input class="form-check-input" onclick="toggleFF()" type="checkbox" checked
+                                id="ForceFeedback">
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Controller Feedback</label>
+                        </div>
+                        <div class="form-check form-switch">
                             <input class="form-check-input" onclick="writeToSerial('*q:0*')" type="checkbox"
                                 id="LineTracking">
                             <label class="form-check-label" for="flexSwitchCheckDefault">Line Tracking</label>
@@ -69,7 +74,7 @@
                         </div>
                     </div>
                 </div>
-                Afstandssensoren:
+                <h4>Afstandssensoren:</h4>
                 <div class="row">
                     <div class="col">
                         <div class="bar distancebar">
@@ -93,7 +98,7 @@
                     </div>
                 </div>
                 <br>
-                Lijnsensoren:
+                <h4>Lijnsensoren:</h4>
                 <div class="row">
                     <div class="col">
                         <div class="bar distancebar">
@@ -113,7 +118,8 @@
                         </div>
                     </div>
                 </div>
-                Gyro:
+                <br>
+                <!-- <h4>Gyro:</h4>
                 <div class="row">
                     <div class="col">
                         <div class="bar distancebar">
@@ -126,19 +132,40 @@
                             <div id="GZ" class="innerdistancebar" style="height:0%;"></div>
                         </div>
                     </div>
-                </div>
-
+                </div><br> -->
+                <h4>Controls:</h4>
+                <ol>
+                    <li>
+                        Keyboard
+                    </li>
+                    <ul>
+                        WASD - Movement
+                    </ul>
+                    <li>
+                        Controller
+                    </li>
+                    <ul>
+                        O - Reset
+                    </ul>
+                    <ul>
+                        L1 - Line Tracking
+                    </ul>
+                    <ul>
+                        R1 - Distance Tracking
+                    </ul>
+                </ol>
 
             </div>
             <div class="col-6">
                 <div class="col">
                     <div class="mx-4">
-                        <pre style="max-height: calc(100vh - 70px);overflow-y:hidden;overflow-x:hidden;color:white;width:100%;"
+                        <pre style="max-height: calc(100vh - 70px);height: calc(100vh - 70px);overflow-y:hidden;overflow-x:hidden;color:white;width:100%;"
                             id="output"></pre>
-                        <div class="input-group mb-3" style="position: absolute;bottom: 0px;right:20px;width:50vw">
-                            <input type="text" class="form-control" placeholder="Message"
+                        <div class="input-group mb-3 w-100">
+                            <input type="text" id="TextInput" class="form-control" placeholder="Message"
                                 aria-describedby="button-addon2">
-                            <button class="btn btn-outline-secondary" type="button" id="button-addon2">Send</button>
+                            <button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                                onclick="SendMessage()">Send</button>
                         </div>
                     </div>
                 </div>
@@ -160,11 +187,14 @@
             },
         });
 
-        var port, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false, ATMode = false, gamepad;
+        var port, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false, ATMode = false, gamepad, rumble = true;
         //COMM
         connectButton.addEventListener('click', () => {
             connect();
         });
+        function toggleFF() {
+            rumble = !rumble;
+        }
 
         function HandleUiConnections(type, status, internal = false) {
             if (type == "USB") {
@@ -193,7 +223,6 @@
                         document.getElementById("stopbutton").classList.remove("disabled");
                         document.getElementById("killbutton").classList.remove("disabled");
                         document.getElementById("calibratebutton").classList.remove("disabled");
-                        // writeToSerial("*bt:0*");
                         writeToSerial("*init:0*")
                     } else {
                         notyf.error("Disconnected Zumo");
@@ -209,7 +238,7 @@
         var timeout;
         function handleDistanceLogic(sensor, readout) {
             DistanceMemory[sensor] = readout;
-            if (timeout) return;
+            if (timeout || !rumble || !gamepad) return;
             console.log("reading vars");
             if (DistanceMemory["PSMR"] >= 15 && DistanceMemory["PSML"] >= 15) {
                 gamepad.vibrationActuator.playEffect("dual-rumble", {
@@ -223,6 +252,13 @@
             timeout = setTimeout(() => {
                 timeout = null;
             }, 500);
+        }
+
+        function SendMessage() {
+            var input = document.getElementById("TextInput")
+            writeToSerial(input.value);
+            outputElement.textContent += input.value+"\r\n"
+            input.value = "";
         }
 
         async function connect() {
@@ -396,7 +432,12 @@
         }
         //KEYBOARD
         window.addEventListener('keydown', (event) => {
+            const tagName = event.target.tagName.toLowerCase();
             if (event.repeat) return;
+            if (tagName === 'input' || tagName === 'textarea') {
+                // Ignore the event when typing in a textbox
+                return;
+            }
             // console.log(holdingDown);
             const key = event.key.toUpperCase();
             switch (key) {
@@ -422,6 +463,11 @@
         });
 
         window.addEventListener('keyup', (event) => {
+            const tagName = event.target.tagName.toLowerCase();
+            if (tagName === 'input' || tagName === 'textarea') {
+                // Ignore the event when typing in a textbox
+                return;
+            }
             // console.log(holdingDown);
             const key = event.key.toUpperCase();
             switch (key) {
@@ -452,6 +498,8 @@
             1: "padRight",
             2: "padLeft",
             3: "padUp",
+            4: "L1",
+            5: "R1",
             6: "ThrottleLeft",
             7: "ThrottleRight",
             10: "JoyLPress",
@@ -487,17 +535,20 @@
                     }
                     // console.log("pressed controller: " + key + value);
                     switch (key) {
-                        case 'dpadUp':
-                            // await writeToSerial(turbo ? "*w:400*" : '*w:200*');
+                        case 'padUp':
+                            toggleFF();
+                            var Button = document.getElementById("ForceFeedback")
+                            Button.checked = !Button.checked
                             break;
-                        case 'dpadDown':
-                            // await writeToSerial(turbo ? "*s:400*" : '*s:200*');
+                        case 'L1':
+                            await writeToSerial('*q:0*')
+                            var Button = document.getElementById("LineTracking")
+                            Button.checked = !Button.checked
                             break;
-                        case 'dpadLeft':
-                            // await writeToSerial(turbo ? "*a:400*" : '*a:200*');
-                            break;
-                        case 'dpadRight':
-                            // await writeToSerial(turbo ? "*d:400*" : '*d:200*');
+                        case 'R1':
+                            await writeToSerial('*l:0*')
+                            var Button = document.getElementById("DistanceTracking")
+                            Button.checked = !Button.checked
                             break;
                         case 'JoyLPress':
                             await writeToSerial("*h:1*");
@@ -509,8 +560,6 @@
                         case 'padRight':
                             await writeToSerial("*|:0*")
                             turbo = true;
-                            break;
-                        case 'padUp':
                             break;
                         case "ThrottleLeft":
                             AxisMemory[key] = value;
