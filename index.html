@@ -23,10 +23,10 @@
                                     <button id="connectbutton" class="btn btn-primary w-auto">Connect</button>
                                 </div>
                                 <div class="col">
-                                    <select class="form-select text-white bg-dark" onchange="HandleZumoSelector()" disabled
-                                        id="ZumoSelector">
-                                        <option selected value="6969">Jerome</option>
-                                        <option value="9696">Wayne</option>
+                                    <select class="form-select text-white bg-dark" onchange="HandleZumoSelector()"
+                                        disabled id="ZumoSelector">
+                                        <option selected value="6969">Zumo-010</option>
+                                        <option value="9696">Zumo-014</option>
                                     </select>
                                 </div>
                             </div>
@@ -94,7 +94,6 @@
                 </div>
                 <br>
                 Lijnsensoren:
-
                 <div class="row">
                     <div class="col">
                         <div class="bar distancebar">
@@ -114,14 +113,33 @@
                         </div>
                     </div>
                 </div>
+                Gyro:
+                <div class="row">
+                    <div class="col">
+                        <div class="bar distancebar">
+                            <div id="GX" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="GY" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                        <div class="bar distancebar">
+                            <div id="GZ" class="innerdistancebar" style="height:0%;"></div>
+                        </div>
+                    </div>
+                </div>
 
 
             </div>
             <div class="col-6">
                 <div class="col">
                     <div class="mx-4">
-                        <pre style="max-height: 600px;overflow-y:hidden;overflow-x:hidden;color:white;width:100%;"
+                        <pre style="max-height: calc(100vh - 70px);overflow-y:hidden;overflow-x:hidden;color:white;width:100%;"
                             id="output"></pre>
+                        <div class="input-group mb-3" style="position: absolute;bottom: 0px;right:20px;width:50vw">
+                            <input type="text" class="form-control" placeholder="Message"
+                                aria-describedby="button-addon2">
+                            <button class="btn btn-outline-secondary" type="button" id="button-addon2">Send</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -142,7 +160,7 @@
             },
         });
 
-        var port, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false, ATMode;
+        var port, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false, ATMode = false, gamepad;
         //COMM
         connectButton.addEventListener('click', () => {
             connect();
@@ -186,6 +204,25 @@
                     }
                 }
             }
+        }
+        var DistanceMemory = {}
+        var timeout;
+        function handleDistanceLogic(sensor, readout) {
+            DistanceMemory[sensor] = readout;
+            if (timeout) return;
+            console.log("reading vars");
+            if (DistanceMemory["PSMR"] >= 15 && DistanceMemory["PSML"] >= 15) {
+                gamepad.vibrationActuator.playEffect("dual-rumble", {
+                    startDelay: 0,
+                    duration: 500,
+                    weakMagnitude: 1.0,
+                    strongMagnitude: 1.0,
+                });
+                console.log('vibrating');
+            }
+            timeout = setTimeout(() => {
+                timeout = null;
+            }, 500);
         }
 
         async function connect() {
@@ -231,7 +268,7 @@
                 console.error('Serial port not writable');
                 return;
             }
-            console.log(data);
+            // console.log(data);
 
             try {
                 const writer = port.writable.getWriter();
@@ -272,7 +309,8 @@
                         case "PSMR":
                         case "PSMRR":
                         case "PSR":
-                            document.getElementById(index).style.height = scale(value, 0, 6, 0, 100) + "%";
+                            handleDistanceLogic(index, value)
+                            document.getElementById(index).style.height = scale(value, 0, 16, 0, 100) + "%";
                             break;
                         case "LSL":
                         case "LSML":
@@ -280,6 +318,9 @@
                         case "LSMR":
                         case "LSR":
                             document.getElementById(index).style.height = scale(value, 0, 1000, 0, 100) + "%";
+                            break;
+                        case "GX":
+                            document.getElementById(index).style.height = scale(value, -90, 90, 0, 100) + "%";
                             break;
                         case "hb":
                             heartBeat = parseInt(value);
@@ -314,9 +355,6 @@
                     holdingDown = holdingDown.filter(e => e !== key);
                 }
             }
-        }
-        function CheckDoubleInputs(key) {
-            return holdingDown.includes(key);
         }
         //END OF KEYBOARD FUNCTIONS
 
@@ -392,9 +430,6 @@
                 case 'S':
                 case 'D':
                     HandleInputCounts(key, "keyup");
-                    // if (!CheckDoubleInputs(key)) {
-                    //     writeToSerial('*e:0*');
-                    // }
                     break;
                 case 'SHIFT':
                     printToConsole("No Turbo :(\n");
@@ -474,6 +509,8 @@
                         case 'padRight':
                             await writeToSerial("*|:0*")
                             turbo = true;
+                            break;
+                        case 'padUp':
                             break;
                         case "ThrottleLeft":
                             AxisMemory[key] = value;
@@ -637,13 +674,12 @@
 
 
         //GAMEPAD
-        var foundPad = false;
         function HandleGameInputs() {
             var gamepads = navigator.getGamepads();
             gamepads.forEach((controller) => {
                 if (controller && controller.id == "Xbox 360 Controller (XInput STANDARD GAMEPAD)") {
-                    if (!foundPad) {
-                        foundPad = true
+                    if (!gamepad) {
+                        gamepad = controller
                         document.getElementById("CTRLR").checked = true;
                     }
                     controller.buttons.forEach((button, index) => {
