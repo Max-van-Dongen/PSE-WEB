@@ -36,7 +36,20 @@ wss.on('connection', function connection(ws, request, client) {
           clients[ClientName] = ws;
           console.log(ClientName);
           sendOK(ws);
-
+          const response = {
+            "function": "listOfUsers",
+            "users": [],
+          }
+          for (const [name, wsClient] of Object.entries(clients)) {
+            if (name != ClientName) {
+              response["users"].push(name);
+            }
+          }
+          for (const [name, wsClient] of Object.entries(clients)) {
+            if (name != ClientName) {
+              ws.send(JSON.stringify(response));
+            }
+          }
         } else {//duplicate found
           sendOK(ws, false);
           kickProtect[ClientName] = true;//protect first user from being kicked by the duplicate user leaving with ws.on('close')
