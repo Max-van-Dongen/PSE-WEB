@@ -11,7 +11,7 @@ const server = new https.createServer({
 
 const wss = new ws.Server({ server });
 const clients = {};
-
+const kickProtect = {};
 function removeClient(name) {
   delete clients[name];
 }
@@ -40,6 +40,7 @@ wss.on('connection', function connection(ws, request, client) {
           sendOK(ws);
         } else {
           sendOK(ws);
+          kickProtect[ClientName] = true;
           ws.close();
           // client.close();
         }
@@ -89,6 +90,10 @@ wss.on('connection', function connection(ws, request, client) {
 
   ws.on('close', function close() {
     // Remove the WebSocket connection of the disconnected client
+    if (kickProtect[ClientName]) {
+      kickProtect[ClientName] = false;
+      return;
+    }
     if (ClientName && clients[ClientName]) {
       removeClient(ClientName);
       console.log("Deleted" + ClientName);
