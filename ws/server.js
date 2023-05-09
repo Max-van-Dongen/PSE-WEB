@@ -3,46 +3,93 @@ const fs = require('fs');
 const https = require('https');
 const uuid = require('uuid');
 
-const clients = new Map(); // Map to store the WebSocket connections with their UUIDs
-
 const server = new https.createServer({
-    cert: fs.readFileSync('certs/server.crt'),
-    key: fs.readFileSync('certs/server.key'),
-    rejectUnauthorized: false,
+  cert: fs.readFileSync('certs/server.crt'),
+  key: fs.readFileSync('certs/server.key'),
+  rejectUnauthorized: false,
 });
 
 const wss = new ws.Server({ server });
+const clients = {};
+
+function removeClient(name) {
+  delete clients[name];
+}
+function sendOK(ws) {
+  const jsonMessage = {
+    "function": "response",
+    "response": true
+  }
+  ws.send(JSON.stringify(jsonMessage));
+}
+
 wss.on('connection', function connection(ws, request, client) {
-    const clientId = uuid.v4(); // Generate a unique UUID for the client
-    clients.set(clientId, ws); // Add the WebSocket connection to the clients map
-    console.log(`Client connected: ${clientId}`);
+  var ClientName;
 
-    ws.on('error', console.error);
+  ws.on('error', console.error);
 
-    ws.on('message', function message(data) {
-        console.log('received: %s', data);
-        if (data == 'hoi') {
-            ws.send('hello');
+  ws.on('message', function message(data) {
+    console.log('received: %s', data);
+    const message = JSON.parse(data);
+    switch (message.function) {
+      case "setAvaliable":
+        ClientName = message.name
+        clients[ClientName] = ws;
+        console.log(ClientName);
+        sendOK(ws);
+        // ws.send('Added ' + ClientName);
+        break;
+      case "removeAvaliable":
+        console.log(ClientName);
+        if (ClientName && clients[ClientName]) {
+          removeClient(ClientName);
+          sendOK(ws);
+          // ws.send('Deleted' + ClientName);
         }
-        if (data == 'doei') {
-            ws.send('goodbye');
+        break;
+      case "messageClient":
+        for (const [name, wsClient] of Object.entries(clients)) {
+          if (name == message.toClient) {
+            const jsonMessage = {
+              "function": "recieveMessage",
+              "fromClient": ClientName,
+              "data": message.data,
+            }
+            wsClient.send(JSON.stringify(jsonMessage));
+          }
         }
-        if (data == 'hey') {
-            clients.forEach((clientWs, clientUUID) => {
-                if (clientUUID !== clientId) { // Don't send the message back to the sender
-                    clientWs.send(`Client ${clientId} says: hey`);
-                }
-            });
-        }
-    });
+        sendOK(ws);
+        break;
+        case "sendClientCommand":
+          for (const [name, wsClient] of Object.entries(clients)) {
+            if (name == message.toClient) {
+              const jsonMessage = {
+                "function": "recieveMessage",
+                "fromClient": ClientName,
+                "command": message.command,
+              }
+              wsClient.send(JSON.stringify(jsonMessage));
+            }
+          }
+          sendOK(ws);
+          break;
 
-    ws.on('close', function close() {
-        // Remove the WebSocket connection of the disconnected client
-        clients.delete(clientId);
-        console.log(`Client disconnected: ${clientId}`);
-    });
+      default:
+        sendOK(ws);
+        // ws.send("Ok!");
+        break;
+    }
+  });
 
-    ws.send('Welcome!');
+  ws.on('close', function close() {
+    // Remove the WebSocket connection of the disconnected client
+    if (ClientName && clients[ClientName]) {
+      removeClient(ClientName);
+      console.log("Deleted" + ClientName);
+    }
+  });
+
+  sendOK(ws);
 });
 
 server.listen(8089);
