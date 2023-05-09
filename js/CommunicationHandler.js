@@ -4,6 +4,12 @@ var Channel = 69;
 var ChangingChannel = false;
 async function printToConsole(msg, incoming = true) {
     // console.log(msg)
+    if (!msg.search("\r")) {
+        msg = msg+"\r";
+    }
+    if (!msg.search("\n")) {
+        msg = msg+"\n";
+    }
     outputElement.textContent += (incoming ? "GOT: " : "SENT: ") + msg
     outputElement.scrollTo(0, outputElement.scrollHeight)
     if (ATMode) {
