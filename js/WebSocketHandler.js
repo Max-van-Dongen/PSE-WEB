@@ -1,6 +1,14 @@
 var ws;
 var canSend = false;
-function ConnectWS() {
+function sendOK(resp = true) {
+    const jsonMessage = {
+        "function": "response",
+        "response": true
+    }
+    ws.send(JSON.stringify(jsonMessage));
+}
+
+function connectWS() {
     ws = new WebSocket(
         "wss://ws.prsonal.nl/",
     );
@@ -18,10 +26,13 @@ function ConnectWS() {
         ws.send(JSON.stringify(body));
     };
     ws.onclose = (event) => {
-        document.getElementById("WSCONN").checked = false;
-        canSend = false;
-        notyf.error("Connection to WS lost");
-        ws = null;
+        if (ws && canSend) {
+            document.getElementById("WSCONN").checked = false;
+            canSend = false;
+            notyf.error("Connection to WS lost,reconnecting!");
+            ws = null;
+            setTimeout(connectWS(), 2000);
+        }
     };
 
     ws.onmessage = (event) => {
@@ -31,7 +42,15 @@ function ConnectWS() {
             case "recieveCommand":
                 console.log(message.command);
                 break;
-
+            case "listOfUsers":
+                removeOptions(wsClientsElement);
+                addOption(wsClientsElement,"Select Client","");
+                message.users.forEach(clientName => {
+                    addOption(wsClientsElement,clientName,clientName);
+                });
+                console.log(message.users)
+                sendOK()
+                break;
             default:
                 break;
         }
@@ -39,16 +58,24 @@ function ConnectWS() {
 
 }
 
-function SendWS(msg) {
+function messageWSUser(msg, user) {
     if (canSend) {
         ws.send(msg);
     }
 }
-function StartWS() {
+function testmsg(client) {
+    const jsonMessage = {
+        "function": "sendClientCommand",
+        "toClient": client,
+        "data": "*h:0*",
+    }
+    ws.send(JSON.stringify(jsonMessage));
+}
+function startWS() {
     if (document.getElementById("wsName").value == "") {
         document.getElementById("wsName").value = randomName() + "-" + randomName() + "-" + randomName() + "-" + randomName();
     }
     if (!ws) {
-        ConnectWS();
+        connectWS();
     }
 }

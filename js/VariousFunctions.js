@@ -11,6 +11,19 @@ function ChangeSpeed(speed) {
 function ChangeLineSpeed(speed) {
     writeToSerial("*lspd:" + speed + "*")
 }
+function removeOptions(selectElement) {
+    var i, L = selectElement.options.length - 1;
+    for(i = L; i >= 0; i--) {
+       selectElement.remove(i);
+    }
+ }
+
+ function addOption(el,text,value) {
+    var option = document.createElement("option");
+    option.text = text;
+    option.value = value;
+    el.add(option);
+ }
 
 function HandleUiConnections(type, status, internal = false) {
     if (type == "USB") {

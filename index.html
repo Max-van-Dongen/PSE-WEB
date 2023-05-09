@@ -11,24 +11,23 @@
 </head>
 
 <body class="bg-dark text-white">
-    <div class="container m-0 p-0">
-        <div class="row">
-            <div class="col-5 my-2 mx-4">
+    <div class="">
+        <div class="row mx-0">
+            <div class="col-12 col-sm-4 leftPad">
                 <div class="row">
                     <div class="col">
                         <br>
-                        <div class="">
-                            <div class="row">
-                                <div class="col-3">
-                                    <button id="connectbutton" class="btn btn-primary w-100">Connect <small>USB</small></button>
-                                </div>
-                                <div class="col-8">
-                                    <select class="form-select text-white bg-dark" onchange="HandleZumoSelector()"
-                                        disabled id="ZumoSelector">
-                                        <option selected value="6969">Zumo-010</option>
-                                        <option value="9696">Zumo-014</option>
-                                    </select>
-                                </div>
+                        <div class="row">
+                            <div class="col-3">
+                                <button id="connectbutton" class="btn btn-primary w-100">Connect
+                                    <small>USB</small></button>
+                            </div>
+                            <div class="col-8">
+                                <select class="form-select text-white bg-dark" onchange="HandleZumoSelector()" disabled
+                                    id="ZumoSelector">
+                                    <option selected value="6969">Zumo-010</option>
+                                    <option value="9696">Zumo-014</option>
+                                </select>
                             </div>
                         </div>
                         <br>
@@ -40,8 +39,6 @@
                             <input type="checkbox" class="btn-check disabled" id="ConnectedZumoCheck"
                                 autocomplete="off">
                             <label class="btn btn-outline-primary disabled" for="btnradio2">Connection Zumo</label>
-                            <input type="checkbox" class="btn-check disabled" id="WSCONN" autocomplete="off">
-                            <label class="btn btn-outline-primary disabled" for="btnradio2">Connection WS</label>
                             <input type="checkbox" class="btn-check disabled" id="CTRLR" autocomplete="off">
                             <label class="btn btn-outline-primary disabled" for="btnradio2">Controller</label>
                         </div>
@@ -176,9 +173,8 @@
                         <div class="">
                             <div class="row">
                                 <div class="col-3">
-                                    <button id="connectwsbutton" onclick="StartWS()"
-                                        class="btn btn-primary w-full">Connect
-                                        WS</button>
+                                    <button id="connectwsbutton" onclick="startWS()"
+                                        class="btn btn-primary w-full">Connect WS</button>
                                 </div>
                                 <div class="col-9">
                                     <div class="form-group">
@@ -190,32 +186,40 @@
                         </div>
                     </div>
                 </div>
+                <br>
+                <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                    <input type="checkbox" class="btn-check disabled" id="WSCONN" autocomplete="off">
+                    <label class="btn btn-outline-primary disabled" for="btnradio2">Connection WS</label>
+                    <input type="checkbox" class="btn-check disabled" id="WSCONN" autocomplete="off">
+                    <label class="btn btn-outline-primary disabled" for="btnradio2">Connection External Client</label>
+                </div>
+                <br>
                 <!-- <a href="https://zumo.prsonal.nl:8089/">WS TEST!</a> -->
 
                 <br>
                 <div class="row">
                     <div class="col">
-                    <select class="form-select text-white bg-dark" onchange="ConnectWSClient()" id="WSSelector">
-                        <option value="">Select Client</option>
-                    </select>
+                        <select class="form-select text-white bg-dark" onchange="ConnectWSClient()" id="WSSelector">
+                            <option value="">Select Client</option>
+                        </select>
+                    </div>
                 </div>
-                </div>  
-                <div class="col-6">
-                    <div class="col">
-                        <div class="mx-4">
-                            <pre style="max-height: calc(100vh - 70px);height: calc(100vh - 70px);overflow-y:hidden;overflow-x:hidden;color:white;width:100%;"
-                                id="output"></pre>
-                            <div class="input-group mb-3 w-100">
-                                <input type="text" id="TextInput" class="form-control" placeholder="Message"
-                                    aria-describedby="button-addon2">
-                                <button class="btn btn-outline-secondary" type="button" id="button-addon2"
-                                    onclick="SendMessage()">Send</button>
-                            </div>
+            </div>
+            <div class="col-12 col-sm-6">
+                <div class="col">
+                    <div class="mx-4">
+                        <pre class="log" id="output"></pre>
+                        <div class="input-group mb-3 w-100">
+                            <input type="text" id="TextInput" class="form-control" placeholder="Message"
+                                aria-describedby="button-addon2">
+                            <button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                                onclick="SendMessage()">Send</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
     <!-- <pre id="output" style="max-height: 200px;overflow-y:auto;overflow-x:hidden;max-width:400px"></pre> -->
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
@@ -225,6 +229,7 @@
     <script>
         const connectButton = document.getElementById('connectbutton');
         const outputElement = document.getElementById('output');
+        const wsClientsElement = document.getElementById('WSSelector');
         var notyf = new Notyf({
             position: {
                 x: 'right',
@@ -239,6 +244,34 @@
     <script src="/js/CommunicationHandler.js"></script>
     <script src="/js/WebSocketHandler.js"></script>
     <style>
+        @media (max-width: 576px) {
+            .log {
+                max-height: calc(50vh - 70px) !important;
+                height: calc(50vh - 70px) !important;
+            }
+
+            .leftpad {
+                overflow-y: auto !important;
+                height: auto !important;
+                max-height: auto !important;
+            }
+        }
+
+        .leftpad {
+            overflow-y: auto;
+            height: 100vh;
+            max-height: 100vh;
+        }
+
+        .log {
+            max-height: calc(100vh - 70px);
+            height: calc(100vh - 70px);
+            overflow-y: hidden;
+            overflow-x: hidden;
+            color: white;
+            width: 100%;
+        }
+
         .distancebar {
             margin-left: 5px;
             float: left;
@@ -258,4 +291,5 @@
         }
     </style>
 </body>
+
 </html>
