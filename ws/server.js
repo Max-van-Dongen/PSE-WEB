@@ -41,12 +41,13 @@ wss.on('connection', function connection(ws, request, client) {
           }
           for (const [name, wsClient] of Object.entries(clients)) {
             if (name != ClientName) {
-              response["users"].push(name);
+              response["users"].push(name); 
             }
           }
           for (const [name, wsClient] of Object.entries(clients)) {
             if (name != ClientName) {
-              ws.send(JSON.stringify(response));
+              wsClient.send(JSON.stringify(response));
+              console.log("sending all users to "+name);
             } else {
               sendOK(ws);
             }
