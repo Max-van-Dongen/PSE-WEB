@@ -186,7 +186,7 @@ function HandleSpecialMessages(msg) {
 //END OF DATA EXTRACTION
 
 
-var HeartBeatTime = 1000;
+const HeartBeatTime = 1000;
 async function CheckHeartBeat() {
     await writeToSerial("*hb:0*");
     var OldHeartBeat = heartBeat

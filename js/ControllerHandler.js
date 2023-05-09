@@ -310,7 +310,8 @@ async function HandleControllerAxes(key, value) {
 function HandleGameInputs() {
     var gamepads = navigator.getGamepads();
     gamepads.forEach((controller) => {
-        if (controller && (controller.id == "Xbox 360 Controller (XInput STANDARD GAMEPAD)" || controller.id == "StadiaPJX8-8ae2 (STANDARD GAMEPAD Vendor: 18d1 Product: 9400)")) {
+        console.log(controller);
+        if (controller && controller.id.search("STANDARD GAMEPAD")) {
             if (!gamepad) {
                 gamepad = controller
                 document.getElementById("CTRLR").checked = true;
@@ -328,5 +329,5 @@ function HandleGameInputs() {
 }
 setInterval(function () {
     HandleGameInputs(useKeyboard);
-}, 100);
+}, 1000);
 //END OF GAMEPAD
