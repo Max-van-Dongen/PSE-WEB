@@ -35,16 +35,16 @@ wss.on('connection', function connection(ws, request, client) {
         if (!clients[ClientName]) {//check for no duplicate users
           clients[ClientName] = ws;
           console.log(ClientName);
-          const response = {
-            "function": "listOfUsers",
-            "users": [],
-          }
           for (const [name, wsClient] of Object.entries(clients)) {
-            if (name != ClientName) {
-              response["users"].push(name); 
+            const response = {
+              "function": "listOfUsers",
+              "users": [],
             }
-          }
-          for (const [name, wsClient] of Object.entries(clients)) {
+            for (const [name2, wsClient2] of Object.entries(clients)) {
+              if (name2 != ClientName) {
+                response["users"].push(name2); 
+              }
+            }
             // if (name != ClientName) {
               wsClient.send(JSON.stringify(response));
               // console.log("sending all users to "+name);
