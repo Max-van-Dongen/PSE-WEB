@@ -20,9 +20,9 @@
                         <div class="">
                             <div class="row">
                                 <div class="col-3">
-                                    <button id="connectbutton" class="btn btn-primary w-auto">Connect</button>
+                                    <button id="connectbutton" class="btn btn-primary w-100">Connect <small>USB</small></button>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-8">
                                     <select class="form-select text-white bg-dark" onchange="HandleZumoSelector()"
                                         disabled id="ZumoSelector">
                                         <option selected value="6969">Zumo-010</option>
@@ -33,17 +33,6 @@
                         </div>
                         <br>
 
-                        <div class="">
-                            <button id="killbutton" onclick="writeToSerial('*|:0*')"
-                                class="btn btn-danger disabled">!!STOP!!</button>
-                            <button id="stopbutton" onclick="writeToSerial('*e:0*')"
-                                class="btn btn-warning disabled mx-3">Stop
-                                Motors</button>
-                            <button id="calibratebutton" onclick="writeToSerial('*c:0*')"
-                                class="btn btn-secondary disabled mx-3">Calibrate</button>
-                        </div>
-                        <br>
-
 
                         <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
                             <input type="checkbox" class="btn-check disabled" id="ConnectedUSBCheck" autocomplete="off">
@@ -51,9 +40,23 @@
                             <input type="checkbox" class="btn-check disabled" id="ConnectedZumoCheck"
                                 autocomplete="off">
                             <label class="btn btn-outline-primary disabled" for="btnradio2">Connection Zumo</label>
+                            <input type="checkbox" class="btn-check disabled" id="WSCONN" autocomplete="off">
+                            <label class="btn btn-outline-primary disabled" for="btnradio2">Connection WS</label>
                             <input type="checkbox" class="btn-check disabled" id="CTRLR" autocomplete="off">
                             <label class="btn btn-outline-primary disabled" for="btnradio2">Controller</label>
                         </div>
+                        <br>
+                        <br>
+                        <div class="btn-group" role="group">
+                            <button id="killbutton" onclick="writeToSerial('*|:0*')"
+                                class="btn btn-danger disabled">!!STOP!!</button>
+                            <button id="stopbutton" onclick="writeToSerial('*e:0*')"
+                                class="btn btn-warning disabled ">Stop
+                                Motors</button>
+                            <button id="calibratebutton" onclick="writeToSerial('*c:0*')"
+                                class="btn btn-secondary disabled">Calibrate</button>
+                        </div>
+                        <br>
                         <br>
                         <label for="speedRange" class="form-label">Snelheid(200):</label>
                         <input type="range" class="form-range" min="0" max="400" step="20"
@@ -167,18 +170,47 @@
                         R1 - Distance Tracking
                     </ul>
                 </ol>
-                <a href="https://zumo.prsonal.nl:8089/">WS TEST!</a>
-            </div>
-            <div class="col-6">
-                <div class="col">
-                    <div class="mx-4">
-                        <pre style="max-height: calc(100vh - 70px);height: calc(100vh - 70px);overflow-y:hidden;overflow-x:hidden;color:white;width:100%;"
-                            id="output"></pre>
-                        <div class="input-group mb-3 w-100">
-                            <input type="text" id="TextInput" class="form-control" placeholder="Message"
-                                aria-describedby="button-addon2">
-                            <button class="btn btn-outline-secondary" type="button" id="button-addon2"
-                                onclick="SendMessage()">Send</button>
+                <div class="row">
+                    <div class="col">
+                        <br>
+                        <div class="">
+                            <div class="row">
+                                <div class="col-3">
+                                    <button id="connectwsbutton" onclick="StartWS()"
+                                        class="btn btn-primary w-full">Connect
+                                        WS</button>
+                                </div>
+                                <div class="col-9">
+                                    <div class="form-group">
+                                        <input type="email" class="form-control" id="wsName" disabled
+                                            aria-describedby="emailHelp" placeholder="Enter name">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- <a href="https://zumo.prsonal.nl:8089/">WS TEST!</a> -->
+
+                <br>
+                <div class="row">
+                    <div class="col">
+                    <select class="form-select text-white bg-dark" onchange="ConnectWSClient()" id="WSSelector">
+                        <option value="">Select Client</option>
+                    </select>
+                </div>
+                </div>  
+                <div class="col-6">
+                    <div class="col">
+                        <div class="mx-4">
+                            <pre style="max-height: calc(100vh - 70px);height: calc(100vh - 70px);overflow-y:hidden;overflow-x:hidden;color:white;width:100%;"
+                                id="output"></pre>
+                            <div class="input-group mb-3 w-100">
+                                <input type="text" id="TextInput" class="form-control" placeholder="Message"
+                                    aria-describedby="button-addon2">
+                                <button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                                    onclick="SendMessage()">Send</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -200,621 +232,12 @@
             },
         });
 
-        var port, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false, ATMode = false, gamepad, rumble = true, kbSpeed = 200;;
-        //COMM
-        connectButton.addEventListener('click', () => {
-            connect();
-        });
-        function toggleFF() {
-            rumble = !rumble;
-        }
-        function ChangeSpeed(speed) {
-            kbSpeed = speed;
-        }
-        function ChangeLineSpeed(speed) {
-            writeToSerial("*lspd:" + speed + "*")
-        }
-
-        function HandleUiConnections(type, status, internal = false) {
-            if (type == "USB") {
-                if ((status != connectedUSB)) {
-                    connectedUSB = status;
-                    if (status) {
-                        notyf.success("Connected USB");
-                        document.getElementById("ConnectedUSBCheck").checked = true;
-                        document.getElementById("connectbutton").classList.add("disabled");
-                        document.getElementById("ZumoSelector").disabled = false;
-                    } else {
-                        notyf.error("Disconnected USB");
-                        document.getElementById("ConnectedUSBCheck").checked = false;
-                        document.getElementById("connectbutton").classList.remove("disabled");
-                        document.getElementById("ZumoSelector").disabled = true;
-                        port = null;
-                        HandleUiConnections("Zumo", false, true);
-                    }
-                }
-            } else {
-                if ((status != connectedZumo) && (internal || connectedUSB)) {
-                    connectedZumo = status;
-                    if (status) {
-                        notyf.success("Connected Zumo");
-                        document.getElementById("ConnectedZumoCheck").checked = true;
-                        document.getElementById("stopbutton").classList.remove("disabled");
-                        document.getElementById("killbutton").classList.remove("disabled");
-                        document.getElementById("calibratebutton").classList.remove("disabled");
-                        writeToSerial("*init:0*")
-                    } else {
-                        notyf.error("Disconnected Zumo");
-                        document.getElementById("ConnectedZumoCheck").checked = false;
-                        document.getElementById("stopbutton").classList.add("disabled");
-                        document.getElementById("killbutton").classList.add("disabled");
-                        document.getElementById("calibratebutton").classList.add("disabled");
-                    }
-                }
-            }
-        }
-        var DistanceMemory = {}
-        var timeout;
-        function handleDistanceLogic(sensor, readout) {
-            DistanceMemory[sensor] = readout;
-            if (timeout || !rumble || !gamepad) return;
-            console.log("reading vars");
-            if (DistanceMemory["PSMR"] >= 15 && DistanceMemory["PSML"] >= 15) {
-                gamepad.vibrationActuator.playEffect("dual-rumble", {
-                    startDelay: 0,
-                    duration: 500,
-                    weakMagnitude: 1.0,
-                    strongMagnitude: 1.0,
-                });
-                console.log('vibrating');
-            }
-            timeout = setTimeout(() => {
-                timeout = null;
-            }, 500);
-        }
-
-        function SendMessage() {
-            var input = document.getElementById("TextInput")
-            writeToSerial(input.value);
-            outputElement.textContent += input.value + "\r\n"
-            input.value = "";
-        }
-
-        async function connect() {
-            if (!navigator.serial) {
-                outputElement.textContent = 'Web Serial API not supported.';
-                return;
-            }
-            try {
-                port = await navigator.serial.requestPort();
-                await port.open({ baudRate: 115200 });
-                HandleUiConnections("USB", true);
-                while (port.readable) {
-                    try {
-                        const reader = port.readable.getReader();
-                        const { value, done } = await reader.read();
-                        reader.releaseLock();
-                        if (done) {
-                            break;
-                        }
-                        var data = new TextDecoder().decode(value)
-                        printToConsole(data);
-                        HandleSpecialMessages(data);
-                    } catch (error) {
-                        HandleUiConnections("USB", false);
-                        console.error('Error reading from serial port:', error);
-                        break;
-                    }
-                }
-                await port.close();
-            } catch (error) {
-                console.error('Error connecting to serial device:', error);
-            }
-        }
-        function HandleZumoSelector() {
-            const dropdown = document.getElementById("ZumoSelector")
-            ChangeChannel(dropdown.value);
-        }
-        async function writeToSerial(data, AT) {
-            if (ATMode && !AT) return;
-            if (!port) return;
-            if (!port.writable) {
-                HandleUiConnections("USB", false);
-                console.error('Serial port not writable');
-                return;
-            }
-            // console.log(data);
-
-            try {
-                const writer = port.writable.getWriter();
-                const encodedData = new TextEncoder().encode(data);
-                await writer.write(encodedData);
-                writer.releaseLock();
-            } catch (error) {
-                console.error('Error writing to serial port:', error);
-            }
-        }
-        //END OF COMM
-
-        //DATA EXTRACTION
-
-        function scale(number, inMin, inMax, outMin, outMax) {//StackOverflow
-            return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-        }
-
-        function HandleSpecialMessages(msg) {
-            if (!msg) return;
-            messagepart += msg;
-            const regex = /\*(.*?):(.*?)\*/g;
-            let match;
-            const result = [];
-
-            while ((match = regex.exec(messagepart)) !== null) {
-                result.push({ index: match[1], value: match[2] });
-                messagepart = messagepart.replace("*" + match[1] + ":" + match[2] + "*", "");
-            }
-            if (result.length > 0) {
-                result.forEach(element => {
-                    const index = element.index
-                    const value = element.value
-                    switch (index) {
-                        case "PSL":
-                        case "PSMLL":
-                        case "PSML":
-                        case "PSMR":
-                        case "PSMRR":
-                        case "PSR":
-                            handleDistanceLogic(index, value)
-                            document.getElementById(index).style.height = scale(value, 0, 16, 0, 100) + "%";
-                            break;
-                        case "LSL":
-                        case "LSML":
-                        case "LSM":
-                        case "LSMR":
-                        case "LSR":
-                            document.getElementById(index).style.height = scale(value, 0, 1000, 0, 100) + "%";
-                            break;
-                        case "GX":
-                            document.getElementById(index).style.height = scale(value, -90, 90, 0, 100) + "%";
-                            break;
-                        case "hb":
-                            heartBeat = parseInt(value);
-                            break;
-                        case "bt":
-                            outputElement.textContent = "";
-                            break;
-                        case "initls":
-                            document.getElementById("LineTracking").checked = value == "0" ? false : true;
-                            break;
-                        case "initps":
-                            document.getElementById("DistanceTracking").checked = value == "0" ? false : true;
-                            break;
-                        case "initfls":
-                            document.getElementById("FollowLine").checked = value == "0" ? false : true;
-                            break;
-                        case "initclb":
-                            console.log("calibrated? " + (value == "0" ? false : true))
-                            // document.getElementById("DistanceTracking").checked = value == "0" ? false : true;
-                            break;
-                        default:
-                            break;
-                    }
-                });
-            }
-            return result;
-        }
-        //END OF DATA EXTRACTION
-
-        //KEYBOARD FUNCTIONS
-        var holdingDown = [];
-        function HandleInputCounts(key, updown) {
-            if (updown == "keydown") {
-                if (!holdingDown.includes(key)) {
-                    holdingDown.push(key);
-                }
-            } else {
-                if (holdingDown.includes(key)) {
-                    holdingDown = holdingDown.filter(e => e !== key);
-                }
-            }
-        }
-        //END OF KEYBOARD FUNCTIONS
-
-
-        //WEB CONSOLE
-        var ATLogs = "";
-        var Channel = 69;
-        var ChangingChannel = false;
-        async function printToConsole(msg) {
-            // console.log(msg)
-            outputElement.textContent += msg
-            outputElement.scrollTo(0, outputElement.scrollHeight)
-            if (ATMode) {
-                ATLogs += msg;
-                if (ATLogs == "OK\r") {
-                    ATLogs = "";
-                    if (!ChangingChannel) {
-                        await writeToSerial("ATID " + Channel + "\r", true);
-                        ChangingChannel = true;
-                    } else {
-                        notyf.success("Changed Channels");
-                        ChangingChannel = false;
-                        ATMode = false;
-                        await setTimeout(async function () {
-                            await writeToSerial("ATCN \r", true)
-                        }, 500);
-                    }
-                }
-            }
-        }
-        //END OF WEB CONSOLE
-        async function ChangeChannel(channel) {
-            Channel = channel;
-            ATMode = true;
-            await setTimeout(async function () {
-                await writeToSerial("+++", true);
-            }, 1000);
-
-        }
-        //KEYBOARD
-        window.addEventListener('keydown', (event) => {
-            const tagName = event.target.tagName.toLowerCase();
-            if (event.repeat) return;
-            if (tagName === 'textarea') {
-                // Ignore the event when typing in a textbox
-                return;
-            }
-            // console.log(holdingDown);
-            const key = event.key.toUpperCase();
-            switch (key) {
-                case 'SHIFT':
-                    printToConsole("TURBO!!!!\n");
-                    turbo = true;
-                    break;
-                case 'ALT':
-                case 'CONTROL':
-                case 'TAB':
-                case 'F5':
-                case 'MEDIAPLAYPAUSE':
-                case 'META':
-                    //do nothing
-                    break;
-
-                default:
-                    HandleInputCounts(key, "keydown");
-                    writeToSerial(key.toLowerCase());
-                    break;
-            }
-            // console.log("down: " + key)
-        });
-        var ws;
-        var canSend = false;
-        function ConnectWS() {
-            ws = new WebSocket(
-                "wss://ws.prsonal.nl/",
-            );
-            ws.addEventListener("error", (event) => {
-                console.log("WebSocket error: ", event);
-            });
-            ws.onopen = (event) => {
-                canSend = true;
-            };
-            ws.onmessage = (event) => {
-                console.log(event.data);
-            };
-
-        }
-
-        function SendWS(msg) {
-            if (canSend) {
-                ws.send(msg);
-            }
-
-        }
-
-        window.addEventListener('keyup', (event) => {
-            const tagName = event.target.tagName.toLowerCase();
-            if (tagName === 'textarea') {
-                // Ignore the event when typing in a textbox
-                return;
-            }
-            // console.log(holdingDown);
-            const key = event.key.toUpperCase();
-            switch (key) {
-                case 'W':
-                case 'A':
-                case 'S':
-                case 'D':
-                    HandleInputCounts(key, "keyup");
-                    break;
-                case 'SHIFT':
-                    printToConsole("No Turbo :(\n");
-                    turbo = false;
-                    break;
-
-                default:
-                    break;
-            }
-            console.log("up: " + key);
-        });
-        //KEYBOARD
-
-
-
-        //GAMEPAD FUNCTIONS
-        var layout =
-        {
-            0: "padDown",
-            1: "padRight",
-            2: "padLeft",
-            3: "padUp",
-            4: "L1",
-            5: "R1",
-            6: "ThrottleLeft",
-            7: "ThrottleRight",
-            10: "JoyLPress",
-            11: "JoyRPress",
-            12: "dpadUp",
-            13: "dpadDown",
-            14: "dpadLeft",
-            15: "dpadRight",
-            100: "JoyLX",
-            101: "JoyLY",
-            102: "JoyRX",
-            103: "JoyRY",
-        };
-        var holdingDownController = [];
-        var ThrottleMemory = {
-            "ThrottleLeft": 0,
-            "ThrottleRight": 0,
-        };
-        var AxisMemory = {
-            "JoyLX": 0,
-            "JoyLY": 0,
-            "JoyRX": 0,
-            "JoyRY": 0,
-            "ThrottleLeft": 0,
-            "ThrottleRight": 0,
-        };
-        var holdingDownControllerAxes = [];
-        async function HandleControllerInputCounts(key, pressed, value = 0) {
-            if (pressed) {
-                if (!holdingDownController.includes(key)) {
-                    if (key != "ThrottleLeft" && key != "ThrottleRight") {
-                        holdingDownController.push(key);
-                    }
-                    // console.log("pressed controller: " + key + value);
-                    switch (key) {
-                        case 'padUp':
-                            toggleFF();
-                            var Button = document.getElementById("ForceFeedback")
-                            Button.checked = !Button.checked
-                            break;
-                        case 'L1':
-                            await writeToSerial('*q:0*')
-                            var Button = document.getElementById("LineTracking")
-                            Button.checked = !Button.checked
-                            break;
-                        case 'R1':
-                            await writeToSerial('*l:0*')
-                            var Button = document.getElementById("DistanceTracking")
-                            Button.checked = !Button.checked
-                            break;
-                        case 'JoyLPress':
-                            await writeToSerial("*h:1*");
-                            break;
-                        case 'padDown':
-                            printToConsole("TURBO!!!!\n");
-                            turbo = true;
-                            break;
-                        case 'padRight':
-                            await writeToSerial("*|:0*")
-                            turbo = true;
-                            break;
-                        case "ThrottleLeft":
-                            AxisMemory[key] = value;
-                            if (!holdingDownControllerAxes.includes(key)) {
-                                holdingDownControllerAxes.push(key);
-                            }
-                            break;
-                        case "ThrottleRight":
-                            AxisMemory[key] = value;
-                            if (!holdingDownControllerAxes.includes(key)) {
-                                holdingDownControllerAxes.push(key);
-                            }
-                        default:
-                            break;
-                    }
-                } else if (key == "ThrottleLeft" || key == "ThrottleRight") {
-                    AxisMemory[key] = value;
-                    if (Math.abs(AxisMemory[key] - value) >= 0.05) {// don't detect tiny changes, causes too much data to be sent!
-                        if (!holdingDownControllerAxes.includes(key)) {
-                            holdingDownControllerAxes.push(key);
-                        }
-                    }
-                }
-            } else {
-                if (holdingDownController.includes(key) || holdingDownControllerAxes.includes(key)) {
-                    if (key == "ThrottleLeft" || key == "ThrottleRight") {
-                        holdingDownControllerAxes = holdingDownControllerAxes.filter(e => e !== key);
-                    } else {
-                        holdingDownController = holdingDownController.filter(e => e !== key);
-                    }
-                    // console.log("released controller: " + key);
-                    switch (key) {
-                        case 'dpadUp':
-                        case 'dpadDown':
-                        case 'dpadLeft':
-                        case 'dpadRight':
-                            // if (!holdingDownControllerAxes.includes("JoyLX")) {
-                            //     await writeToSerial('*e:0*');
-                            // }
-                            break;
-                        case 'ThrottleLeft':
-                        case 'ThrottleRight':
-                            AxisMemory[key] = 0;
-                            break;
-                        case 'padDown':
-                            printToConsole("No Turbo :(\n");
-                            turbo = false;
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
-        var MotorStates = {
-            "leftSpeed": 0,
-            "rightSpeed": 0,
-        }
-        async function HandleMotorControl(keyboard = true) {
-            var throttle = 0;
-            var steer = 0;
-            //KEYBOARD INPUT
-            if (keyboard && holdingDown.length !== 0) {
-                if (holdingDown.includes("W")) {
-                    throttle += turbo ? 1 : scale(kbSpeed, 0, 400, 0, 1);
-                }
-                if (holdingDown.includes("A")) {
-                    steer += turbo ? 1 : scale(kbSpeed, 0, 400, 0, 1);
-                }
-                if (holdingDown.includes("S")) {
-                    throttle -= turbo ? 1 : scale(kbSpeed, 0, 400, 0, 1);
-                }
-                if (holdingDown.includes("D")) {
-                    steer -= turbo ? 1 : scale(kbSpeed, 0, 400, 0, 1);
-                }
-            } else if (holdingDownController.length !== 0) {//DPAD INPUT
-                if (holdingDownController.includes("dpadDown")) {
-                    throttle -= turbo ? 1 : scale(kbSpeed, 0, 400, 0, 1);
-                }
-                if (holdingDownController.includes("dpadUp")) {
-                    throttle += turbo ? 1 : scale(kbSpeed, 0, 400, 0, 1);
-                }
-                if (holdingDownController.includes("dpadLeft")) {
-                    steer += turbo ? 1 : scale(kbSpeed, 0, 400, 0, 1);
-                }
-                if (holdingDownController.includes("dpadRight")) {
-                    steer -= turbo ? 1 : scale(kbSpeed, 0, 400, 0, 1);
-                }
-            } else if (holdingDownControllerAxes.length !== 0) {//JOY INPUT
-                throttle = AxisMemory["ThrottleRight"] !== 0 ? AxisMemory["ThrottleRight"] : (AxisMemory["ThrottleLeft"] * -1);
-                steer = AxisMemory["JoyLX"] * -1;
-            }
-
-            const maxSpeed = 400;
-            if (throttle < 0) {
-                steer = steer * -1
-            }
-            // Map throttle to the range [-maxSpeed, maxSpeed]
-            let mappedThrottle = scale(throttle, -1, 1, -maxSpeed, maxSpeed);
-
-            // Map steer to the range [-maxSpeed, maxSpeed]
-            let mappedSteer = scale(steer, -1, 1, -maxSpeed, maxSpeed);
-
-            // Calculate left and right speeds
-            let leftSpeed = mappedThrottle - mappedSteer;
-            let rightSpeed = mappedThrottle + mappedSteer;
-
-            // Clamp the speeds to the range [-maxSpeed, maxSpeed]
-            leftSpeed = Math.round(Math.min(Math.max(leftSpeed, -maxSpeed), maxSpeed));
-            rightSpeed = Math.round(Math.min(Math.max(rightSpeed, -maxSpeed), maxSpeed));
-
-            if (Math.abs(MotorStates["leftSpeed"] - leftSpeed) > 10) {//detect > 10 difference in current speed and target speed, send to arduino
-                await writeToSerial("*ls:" + leftSpeed + "*");
-            }
-            if (Math.abs(MotorStates["rightSpeed"] - rightSpeed) > 10) {//detect > 10 difference in current speed and target speed, send to arduino
-                await writeToSerial("*rs:" + rightSpeed + "*");
-            }
-            // console.log("Left: " + leftSpeed + " Right: " + rightSpeed);
-            if (leftSpeed === 0 && rightSpeed === 0 && (MotorStates["rightSpeed"] !== 0 || MotorStates["leftSpeed"] !== 0)) {//one motor currently moving, all motors target 0, stop!
-                await writeToSerial("*e:0*");
-                console.log("Stopping");
-            }
-            MotorStates["leftSpeed"] = leftSpeed;
-            MotorStates["rightSpeed"] = rightSpeed;
-        }
-
-        async function HandleControllerAxes(key, value) {
-            if (Math.abs(AxisMemory[key] - value) >= 0.10) {// don't detect tiny changes, causes too much data to be sent!
-                // console.log("Axis Change: " + key + " " + value);
-                AxisMemory[key] = value;
-                var posval = value <= 0 ? value * -1 : value;
-                var scaledValue = Math.round(scale(posval, 0, 1, 0, 400));
-                // console.log("Axis Scaled: " + scaledValue);
-                switch (key) {
-                    case 'JoyLX':
-                        if (posval < 0.2) {//deadzone
-                            holdingDownControllerAxes = holdingDownControllerAxes.filter(e => e !== key);
-                            AxisMemory[key] = 0;
-                            break;
-                        }
-                        if (value > 0 && posval > 0.2) {
-                            if (!holdingDownControllerAxes.includes(key)) {
-                                holdingDownControllerAxes.push(key);
-                            }
-                        }
-                        if (value < 0 && posval > 0.2) {
-                            if (!holdingDownControllerAxes.includes(key)) {
-                                holdingDownControllerAxes.push(key);
-                            }
-                        }
-                        break;
-                    default:
-                        break;
-                }
-
-            }
-
-        }
-        //END OF GAMEPAD FUNCTIONS
-
-
-
-        //GAMEPAD
-        function HandleGameInputs() {
-            var gamepads = navigator.getGamepads();
-            gamepads.forEach((controller) => {
-                if (controller && (controller.id == "Xbox 360 Controller (XInput STANDARD GAMEPAD)")) {
-                    if (!gamepad) {
-                        gamepad = controller
-                        document.getElementById("CTRLR").checked = true;
-                    }
-                    controller.buttons.forEach((button, index) => {
-                        HandleControllerInputCounts(layout[index], button.pressed, button.value)
-                    });
-                    controller.axes.forEach((button, index) => {
-                        HandleControllerAxes(layout[index + 100], button)
-                    });
-
-                }
-            });
-            HandleMotorControl()
-        }
-        setInterval(function () {
-            HandleGameInputs(useKeyboard);
-        }, 100);
-        //END OF GAMEPAD
-
-        const HeartBeatTime = 1000;
-        async function CheckHeartBeat() {
-            await writeToSerial("*hb:0*");
-            var OldHeartBeat = heartBeat
-            setTimeout(function () {
-                if (OldHeartBeat == heartBeat) {
-                    HandleUiConnections("Zumo", false);
-                } else {
-                    HandleUiConnections("Zumo", true);
-                }
-            }, HeartBeatTime + 500);
-        }
-        setInterval(function () {
-            CheckHeartBeat();
-        }, HeartBeatTime);
+        var port, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false, ATMode = false, gamepad, rumble = true, kbSpeed = 200;
     </script>
-
+    <script src="/js/VariousFunctions.js"></script>
+    <script src="/js/CommunicationHandler.js"></script>
+    <script src="/js/CommunicationHandler.js"></script>
+    <script src="/js/WebSocketHandler.js"></script>
     <style>
         .distancebar {
             margin-left: 5px;
@@ -835,5 +258,4 @@
         }
     </style>
 </body>
-
 </html>
