@@ -28,6 +28,17 @@ wss.on('connection', function connection(ws) {
     }
     // ws.send('something');
   });
+  server.on('upgrade', (request, socket, head) => {
+    const origin = request && request.headers && request.headers.origin;
+    const corsRegex = /^https?:\/\/(.*\.?)abc\.com(:\d+)?\/$/g
+    if (origin && origin.match(corsRegex) != null) {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      socket.destroy();
+    }
+  });
 
   ws.send('Welcome!');
 });
