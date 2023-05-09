@@ -310,7 +310,7 @@ async function HandleControllerAxes(key, value) {
 function HandleGameInputs() {
     var gamepads = navigator.getGamepads();
     gamepads.forEach((controller) => {
-        console.log(controller);
+        // console.log(controller);
         if (controller && controller.id.search("STANDARD GAMEPAD")) {
             if (!gamepad) {
                 gamepad = controller
@@ -329,5 +329,5 @@ function HandleGameInputs() {
 }
 setInterval(function () {
     HandleGameInputs(useKeyboard);
-}, 1000);
+}, 100);
 //END OF GAMEPAD
