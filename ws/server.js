@@ -40,7 +40,8 @@ wss.on('connection', function connection(ws, request, client) {
           sendOK(ws);
         } else {
           sendOK(ws);
-          client.close();
+          ws.close();
+          // client.close();
         }
         // ws.send('Added ' + ClientName);
         break;
