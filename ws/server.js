@@ -41,7 +41,7 @@ wss.on('connection', function connection(ws, request, client) {
               "users": [],
             }
             for (const [name2, wsClient2] of Object.entries(clients)) {
-              if (name2 != ClientName) {
+              if (name2 != name) {
                 response["users"].push(name2); 
               }
             }
