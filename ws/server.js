@@ -4,7 +4,7 @@ const https =  require('https');
 const server = new https.createServer({
     cert: fs.readFileSync('certs/server.crt'),
     key: fs.readFileSync('certs/server.key'),
-    port: 8089,
+    // port: 8089,
   });
 //   console.log('');
 // const wss = new ws.WebSocketServer({
@@ -31,3 +31,4 @@ wss.on('connection', function connection(ws) {
 
   ws.send('Welcome!');
 });
+server.listen(8089);
