@@ -487,6 +487,30 @@
             }
             // console.log("down: " + key)
         });
+        var ws;
+        var canSend = false;
+        function ConnectWS() {
+            ws = new WebSocket(
+                "wss://zumo.prsonal.nl:8089",
+            );
+            ws.addEventListener("error", (event) => {
+                console.log("WebSocket error: ", event);
+            });
+            ws.onopen = (event) => {
+                canSend = true;
+            };
+            ws.onmessage = (event) => {
+                console.log(event.data);
+            };
+
+        }
+
+        function SendWS(msg) {
+            if (canSend) {
+                ws.send(msg);
+            }
+
+        }
 
         window.addEventListener('keyup', (event) => {
             const tagName = event.target.tagName.toLowerCase();
@@ -747,7 +771,7 @@
         }
         //END OF GAMEPAD FUNCTIONS
 
-        
+
 
         //GAMEPAD
         function HandleGameInputs() {
