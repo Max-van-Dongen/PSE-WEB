@@ -1,0 +1,23 @@
+{
+  "name": "pse-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ws/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Max-van-Dongen/PSE-WEB.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Max-van-Dongen/PSE-WEB/issues"
+  },
+  "homepage": "https://github.com/Max-van-Dongen/PSE-WEB#readme",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "ws": "^8.13.0"
+  }
+}
