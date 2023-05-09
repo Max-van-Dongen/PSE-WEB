@@ -203,15 +203,17 @@ function HandleSpecialMessages(msg) {
 
 const HeartBeatTime = 1000;
 async function CheckHeartBeat() {
-    await writeToSerial("*hb:0*");
-    var OldHeartBeat = heartBeat
-    setTimeout(function () {
-        if (OldHeartBeat == heartBeat) {
-            HandleUiConnections("Zumo", false);
-        } else {
-            HandleUiConnections("Zumo", true);
-        }
-    }, HeartBeatTime + 500);
+    if (port) {
+        await writeToSerial("*hb:0*");
+        var OldHeartBeat = heartBeat
+        setTimeout(function () {
+            if (OldHeartBeat == heartBeat) {
+                HandleUiConnections("Zumo", false);
+            } else {
+                HandleUiConnections("Zumo", true);
+            }
+        }, HeartBeatTime + 500);
+    }
 }
 setInterval(function () {
     CheckHeartBeat();
