@@ -71,7 +71,7 @@ function messageWSUser(user, msg) {
         const jsonMessage = {
             "function": "sendClientCommand",
             "toClient": user,
-            "data": "*h:0*",
+            "command": msg,
         }
         ws.send(JSON.stringify(jsonMessage));
         // ws.send(msg);
