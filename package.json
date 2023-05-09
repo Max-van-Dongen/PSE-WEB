@@ -19,6 +19,7 @@
   "dependencies": {
     "fs": "^0.0.1-security",
     "https": "^1.0.0",
+    "uuid": "^9.0.0",
     "ws": "^8.13.0"
   }
 }
