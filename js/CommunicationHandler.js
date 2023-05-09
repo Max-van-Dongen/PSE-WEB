@@ -2,9 +2,9 @@
 var ATLogs = "";
 var Channel = 69;
 var ChangingChannel = false;
-async function printToConsole(msg) {
+async function printToConsole(msg, incoming = true) {
     // console.log(msg)
-    outputElement.textContent += "GOT: " + msg
+    outputElement.textContent += (incoming ? "GOT: " : "SENT: ") + msg
     outputElement.scrollTo(0, outputElement.scrollHeight)
     if (ATMode) {
         ATLogs += msg;
@@ -56,7 +56,7 @@ function handleDistanceLogic(sensor, readout) {
 function SendMessage() {
     var input = document.getElementById("TextInput")
     writeToSerial(input.value);
-    outputElement.textContent += "SENT: "+ input.value + "\r\n"
+    printToConsole("SENT: " + input.value + "\r\n",false)
     input.value = "";
 }
 
@@ -97,8 +97,8 @@ function HandleZumoSelector() {
 }
 async function writeToSerial(data, AT) {
     if (connectedClient) {
-        messageWSUser(connectedClient,data);
-        outputElement.textContent += "SENT: " + data;
+        messageWSUser(connectedClient, data);
+        printToConsole(data,false);
     }
     if (ATMode && !AT) return;
     if (!port) return;
@@ -114,7 +114,7 @@ async function writeToSerial(data, AT) {
         const encodedData = new TextEncoder().encode(data);
         await writer.write(encodedData);
         writer.releaseLock();
-        outputElement.textContent += "SENT: " + data;
+        printToConsole(data,false);
     } catch (error) {
         console.error('Error writing to serial port:', error);
     }
