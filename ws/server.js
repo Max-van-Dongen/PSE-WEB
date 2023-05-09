@@ -45,12 +45,12 @@ wss.on('connection', function connection(ws, request, client) {
             }
           }
           for (const [name, wsClient] of Object.entries(clients)) {
-            if (name != ClientName) {
+            // if (name != ClientName) {
               wsClient.send(JSON.stringify(response));
-              console.log("sending all users to "+name);
-            } else {
-              sendOK(ws);
-            }
+              // console.log("sending all users to "+name);
+            // } else {
+            //   sendOK(ws);
+            // }
           }
         } else {//duplicate found
           sendOK(ws, false);
