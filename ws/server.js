@@ -98,3 +98,4 @@ wss.on('connection', function connection(ws, request, client) {
 
 server.listen(8089);
 server.setMaxListeners(0);
+console.log("Starting Server!");
