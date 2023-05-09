@@ -27,14 +27,14 @@ wss.on('connection', function connection(ws, request, client) {
   var ClientName;
   ws.on('error', console.error);
   ws.on('message', function message(data) {
-    console.log('received: %s', data);
+    // console.log('received: %s', data);
     const message = JSON.parse(data);
     switch (message.function) {
       case "setAvaliable":
         ClientName = message.name
         if (!clients[ClientName]) {//check for no duplicate users
           clients[ClientName] = ws;
-          console.log(ClientName);
+          // console.log(ClientName);
           for (const [name, wsClient] of Object.entries(clients)) {
             const response = {
               "function": "listOfUsers",
@@ -59,7 +59,7 @@ wss.on('connection', function connection(ws, request, client) {
         }
         break;
       case "removeAvaliable":
-        console.log(ClientName);
+        // console.log(ClientName);
         if (ClientName && clients[ClientName]) {
           removeClient(ClientName);
           sendOK(ws);
@@ -104,7 +104,7 @@ wss.on('connection', function connection(ws, request, client) {
     }
     if (ClientName && clients[ClientName]) {
       removeClient(ClientName);
-      console.log("Deleted" + ClientName);
+      // console.log("Deleted" + ClientName);
     }
   });
 
