@@ -15,7 +15,7 @@ const kickProtect = {};
 function removeClient(name) {
   delete clients[name];
 }
-function sendOK(ws) {
+function sendOK(ws, resp = true) {
   const jsonMessage = {
     "function": "response",
     "response": true
@@ -25,72 +25,65 @@ function sendOK(ws) {
 
 wss.on('connection', function connection(ws, request, client) {
   var ClientName;
-
   ws.on('error', console.error);
-
   ws.on('message', function message(data) {
     console.log('received: %s', data);
     const message = JSON.parse(data);
     switch (message.function) {
       case "setAvaliable":
         ClientName = message.name
-        if (!clients[ClientName]) {
+        if (!clients[ClientName]) {//check for no duplicate users
           clients[ClientName] = ws;
           console.log(ClientName);
           sendOK(ws);
-        } else {
-          sendOK(ws);
-          kickProtect[ClientName] = true;
+
+        } else {//duplicate found
+          sendOK(ws, false);
+          kickProtect[ClientName] = true;//protect first user from being kicked by the duplicate user leaving with ws.on('close')
           ws.close();
-          // client.close();
         }
-        // ws.send('Added ' + ClientName);
         break;
       case "removeAvaliable":
         console.log(ClientName);
         if (ClientName && clients[ClientName]) {
           removeClient(ClientName);
           sendOK(ws);
-          // ws.send('Deleted' + ClientName);
         }
         break;
       case "messageClient":
-        for (const [name, wsClient] of Object.entries(clients)) {
-          if (name == message.toClient) {
-            const jsonMessage = {
-              "function": "recieveMessage",
-              "fromClient": ClientName,
-              "data": message.data,
-            }
-            wsClient.send(JSON.stringify(jsonMessage));
+        if (clients[message.toClient]) {
+          const jsonMessage = {
+            "function": "recieveMessage",
+            "fromClient": ClientName,
+            "data": message.data,
           }
+          clients[message.toClient].send(JSON.stringify(jsonMessage));
+          sendOK(ws);
+        } else {
+          sendOK(ws, false);
         }
-        sendOK(ws);
         break;
       case "sendClientCommand":
-        for (const [name, wsClient] of Object.entries(clients)) {
-          if (name == message.toClient) {
-            const jsonMessage = {
-              "function": "recieveMessage",
-              "fromClient": ClientName,
-              "command": message.command,
-            }
-            wsClient.send(JSON.stringify(jsonMessage));
+        if (clients[message.toClient]) {
+          const jsonMessage = {
+            "function": "recieveCommand",
+            "fromClient": ClientName,
+            "command": message.command,
           }
+          clients[message.toClient].send(JSON.stringify(jsonMessage));
+          sendOK(ws);
+        } else {
+          sendOK(ws, false);
         }
-        sendOK(ws);
         break;
-
       default:
-        sendOK(ws);
-        // ws.send("Ok!");
+        sendOK(ws, false);
         break;
     }
   });
 
   ws.on('close', function close() {
-    // Remove the WebSocket connection of the disconnected client
-    if (kickProtect[ClientName]) {
+    if (kickProtect[ClientName]) {//prevent duplicate user from deleting the origional user
       kickProtect[ClientName] = false;
       return;
     }
