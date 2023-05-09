@@ -491,7 +491,7 @@
         var canSend = false;
         function ConnectWS() {
             ws = new WebSocket(
-                "wss://zumo.prsonal.nl:8089",
+                "wss://ws.prsonal.nl/",
             );
             ws.addEventListener("error", (event) => {
                 console.log("WebSocket error: ", event);

@@ -4,6 +4,7 @@ const https =  require('https');
 const server = new https.createServer({
     cert: fs.readFileSync('certs/server.crt'),
     key: fs.readFileSync('certs/server.key'),
+    rejectUnauthorized: false,
     // port: 8089,
   });
 //   console.log('');
