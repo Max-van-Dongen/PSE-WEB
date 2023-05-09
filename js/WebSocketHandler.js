@@ -1,5 +1,6 @@
 var ws;
 var canSend = false;
+var connectedClient;
 function sendOK(resp = true) {
     const jsonMessage = {
         "function": "response",
@@ -40,7 +41,9 @@ function connectWS() {
         const message = JSON.parse(event.data);
         switch (message.function) {
             case "recieveCommand":
+                writeToSerial(message.command);
                 console.log(message.command);
+                sendOK();
                 break;
             case "listOfUsers":
                 removeOptions(wsClientsElement);
@@ -48,8 +51,8 @@ function connectWS() {
                 message.users.forEach(clientName => {
                     addOption(wsClientsElement,clientName,clientName);
                 });
-                console.log(message.users)
-                sendOK()
+                console.log(message.users);
+                sendOK();
                 break;
             default:
                 break;
@@ -58,19 +61,30 @@ function connectWS() {
 
 }
 
-function messageWSUser(msg, user) {
+function ConnectWSClient() {
+    connectedClient = wsClientsElement.value;
+    console.log(connectedClient);
+}
+
+function messageWSUser(user, msg) {
     if (canSend) {
-        ws.send(msg);
+        const jsonMessage = {
+            "function": "sendClientCommand",
+            "toClient": user,
+            "data": "*h:0*",
+        }
+        ws.send(JSON.stringify(jsonMessage));
+        // ws.send(msg);
     }
 }
-function testmsg(client) {
-    const jsonMessage = {
-        "function": "sendClientCommand",
-        "toClient": client,
-        "data": "*h:0*",
-    }
-    ws.send(JSON.stringify(jsonMessage));
-}
+// function testmsg(client) {
+//     const jsonMessage = {
+//         "function": "sendClientCommand",
+//         "toClient": client,
+//         "data": "*h:0*",
+//     }
+//     ws.send(JSON.stringify(jsonMessage));
+// }
 function startWS() {
     if (document.getElementById("wsName").value == "") {
         document.getElementById("wsName").value = randomName() + "-" + randomName() + "-" + randomName() + "-" + randomName();

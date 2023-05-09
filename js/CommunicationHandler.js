@@ -96,6 +96,9 @@ function HandleZumoSelector() {
     ChangeChannel(dropdown.value);
 }
 async function writeToSerial(data, AT) {
+    if (connectedClient) {
+        messageWSUser()
+    }
     if (ATMode && !AT) return;
     if (!port) return;
     if (!port.writable) {
