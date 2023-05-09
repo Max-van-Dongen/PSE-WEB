@@ -15,9 +15,11 @@ const server = new https.createServer({
 // });
 const wss = new ws.Server({ server });
 // console.log(wss);
-
-wss.on('connection', function connection(ws) {
+var clients = [];
+wss.on('connection', function connection(ws,request,client) {
   ws.on('error', console.error);
+  clients.push(client);
+  console.log(clients);
 
   ws.on('message', function message(data) {
     console.log('received: %s', data);
