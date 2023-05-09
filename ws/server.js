@@ -34,9 +34,14 @@ wss.on('connection', function connection(ws, request, client) {
     switch (message.function) {
       case "setAvaliable":
         ClientName = message.name
-        clients[ClientName] = ws;
-        console.log(ClientName);
-        sendOK(ws);
+        if (!clients[ClientName]) {
+          clients[ClientName] = ws;
+          console.log(ClientName);
+          sendOK(ws);
+        } else {
+          sendOK(ws);
+          client.close();
+        }
         // ws.send('Added ' + ClientName);
         break;
       case "removeAvaliable":
@@ -60,19 +65,19 @@ wss.on('connection', function connection(ws, request, client) {
         }
         sendOK(ws);
         break;
-        case "sendClientCommand":
-          for (const [name, wsClient] of Object.entries(clients)) {
-            if (name == message.toClient) {
-              const jsonMessage = {
-                "function": "recieveMessage",
-                "fromClient": ClientName,
-                "command": message.command,
-              }
-              wsClient.send(JSON.stringify(jsonMessage));
+      case "sendClientCommand":
+        for (const [name, wsClient] of Object.entries(clients)) {
+          if (name == message.toClient) {
+            const jsonMessage = {
+              "function": "recieveMessage",
+              "fromClient": ClientName,
+              "command": message.command,
             }
+            wsClient.send(JSON.stringify(jsonMessage));
           }
-          sendOK(ws);
-          break;
+        }
+        sendOK(ws);
+        break;
 
       default:
         sendOK(ws);
