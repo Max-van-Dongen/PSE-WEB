@@ -203,7 +203,7 @@ function HandleSpecialMessages(msg) {
 
 const HeartBeatTime = 1000;
 async function CheckHeartBeat() {
-    if (port) {
+    if (port || connectedClient) {
         await writeToSerial("*hb:0*");
         var OldHeartBeat = heartBeat
         setTimeout(function () {
