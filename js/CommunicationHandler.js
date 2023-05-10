@@ -107,8 +107,9 @@ async function writeToSerial(data, AT) {
         messageWSUser(connectedClient, data);
         printToConsole(data, false);
     } else {
-
-        printToConsole("DEBUG " + data, false);
+        if (debug) {
+            printToConsole("DEBUG " + data, false);
+        }
     }
     if (ATMode && !AT) return;
     if (!port) return;

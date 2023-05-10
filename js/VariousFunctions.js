@@ -63,6 +63,11 @@ function HandleUiConnections(type, status, internal = false) {
         }
     }
 }
+
+function toggleDebug() {
+    debug = !debug;
+}
+
 var nameList = [
     'Time', 'Past', 'Future', 'Dev',
     'Fly', 'Flying', 'Soar', 'Soaring', 'Power', 'Falling',
