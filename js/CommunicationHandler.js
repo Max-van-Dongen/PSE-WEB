@@ -137,7 +137,50 @@ async function writeToSerial(data, AT) {
 function scale(number, inMin, inMax, outMin, outMax) {//StackOverflow
     return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
 }
-
+function HandleIncoming(index, value) {
+    switch (index) {
+        case "PSL":
+        case "PSMLL":
+        case "PSML":
+        case "PSMR":
+        case "PSMRR":
+        case "PSR":
+            handleDistanceLogic(index, value)
+            document.getElementById(index).style.height = scale(value, 0, 16, 0, 100) + "%";
+            break;
+        case "LSL":
+        case "LSML":
+        case "LSM":
+        case "LSMR":
+        case "LSR":
+            document.getElementById(index).style.height = scale(value, 0, 1000, 0, 100) + "%";
+            break;
+        case "GX":
+            document.getElementById(index).style.height = scale(value, -90, 90, 0, 100) + "%";
+            break;
+        case "hb":
+            heartBeat = parseInt(value);
+            break;
+        case "bt":
+            outputElement.textContent = "";
+            break;
+        case "initls":
+            document.getElementById("LineTracking").checked = value == "0" ? false : true;
+            break;
+        case "initps":
+            document.getElementById("DistanceTracking").checked = value == "0" ? false : true;
+            break;
+        case "initfls":
+            document.getElementById("FollowLine").checked = value == "0" ? false : true;
+            break;
+        case "initclb":
+            console.log("calibrated? " + (value == "0" ? false : true))
+            // document.getElementById("DistanceTracking").checked = value == "0" ? false : true;
+            break;
+        default:
+            break;
+    }
+}
 function HandleSpecialMessages(msg) {
     if (!msg) return;
     messagepart += msg;
@@ -153,48 +196,7 @@ function HandleSpecialMessages(msg) {
         result.forEach(element => {
             const index = element.index
             const value = element.value
-            switch (index) {
-                case "PSL":
-                case "PSMLL":
-                case "PSML":
-                case "PSMR":
-                case "PSMRR":
-                case "PSR":
-                    handleDistanceLogic(index, value)
-                    document.getElementById(index).style.height = scale(value, 0, 16, 0, 100) + "%";
-                    break;
-                case "LSL":
-                case "LSML":
-                case "LSM":
-                case "LSMR":
-                case "LSR":
-                    document.getElementById(index).style.height = scale(value, 0, 1000, 0, 100) + "%";
-                    break;
-                case "GX":
-                    document.getElementById(index).style.height = scale(value, -90, 90, 0, 100) + "%";
-                    break;
-                case "hb":
-                    heartBeat = parseInt(value);
-                    break;
-                case "bt":
-                    outputElement.textContent = "";
-                    break;
-                case "initls":
-                    document.getElementById("LineTracking").checked = value == "0" ? false : true;
-                    break;
-                case "initps":
-                    document.getElementById("DistanceTracking").checked = value == "0" ? false : true;
-                    break;
-                case "initfls":
-                    document.getElementById("FollowLine").checked = value == "0" ? false : true;
-                    break;
-                case "initclb":
-                    console.log("calibrated? " + (value == "0" ? false : true))
-                    // document.getElementById("DistanceTracking").checked = value == "0" ? false : true;
-                    break;
-                default:
-                    break;
-            }
+            HandleIncoming(index, value);
         });
     }
     return result;

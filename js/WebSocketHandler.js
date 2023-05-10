@@ -45,11 +45,17 @@ function connectWS() {
                 console.log(message.command);
                 sendOK();
                 break;
+            case "sentCommand":
+                HandleSpecialMessages(message.command);
+                // writeToSerial(message.command);
+                console.log(message.command);
+                sendOK();
+                break;
             case "listOfUsers":
                 removeOptions(wsClientsElement);
-                addOption(wsClientsElement,"Select Client","");
+                addOption(wsClientsElement, "Select Client", "");
                 message.users.forEach(clientName => {
-                    addOption(wsClientsElement,clientName,clientName);
+                    addOption(wsClientsElement, clientName, clientName);
                 });
                 console.log(message.users);
                 sendOK();
@@ -77,14 +83,7 @@ function messageWSUser(user, msg) {
         // ws.send(msg);
     }
 }
-// function testmsg(client) {
-//     const jsonMessage = {
-//         "function": "sendClientCommand",
-//         "toClient": client,
-//         "data": "*h:0*",
-//     }
-//     ws.send(JSON.stringify(jsonMessage));
-// }
+
 function startWS() {
     if (document.getElementById("wsName").value == "") {
         document.getElementById("wsName").value = randomName() + "-" + randomName() + "-" + randomName() + "-" + randomName();

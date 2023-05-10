@@ -78,7 +78,7 @@ wss.on('connection', function connection(ws, request, client) {
           sendOK(ws, false);
         }
         break;
-      case "sendClientCommand":
+      case "sendClientCommand"://Zumo Inputs
         if (clients[message.toClient]) {
           const jsonMessage = {
             "function": "recieveCommand",
@@ -91,6 +91,19 @@ wss.on('connection', function connection(ws, request, client) {
           sendOK(ws, false);
         }
         break;
+        case "getClientCommand"://Zumo Outputs (Line Follower etc)
+          if (clients[message.toClient]) {
+            const jsonMessage = {
+              "function": "sentCommand",
+              "fromClient": ClientName,
+              "command": message.command,
+            }
+            clients[message.toClient].send(JSON.stringify(jsonMessage));
+            sendOK(ws);
+          } else {
+            sendOK(ws, false);
+          }
+          break;
       default:
         sendOK(ws, false);
         break;
