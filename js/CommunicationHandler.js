@@ -105,10 +105,8 @@ function HandleZumoSelector() {
 async function writeToSerial(data, AT) {
     if (connectedClient) {
         messageWSUser(connectedClient, data);
-        printToConsole(data, false);
-    } else {
         if (debug) {
-            printToConsole("DEBUG " + data, false);
+            printToConsole("REMOTE: " + data, false);
         }
     }
     if (ATMode && !AT) return;
@@ -138,6 +136,9 @@ function scale(number, inMin, inMax, outMin, outMax) {//StackOverflow
     return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
 }
 function HandleIncoming(index, value) {
+    if (connectedRemote) {
+        WSDataFromZumo("*"+index+":"+value+"*");
+    }
     switch (index) {
         case "PSL":
         case "PSMLL":
@@ -206,7 +207,7 @@ function HandleSpecialMessages(msg) {
 
 const HeartBeatTime = 1000;
 async function CheckHeartBeat() {
-    if (port || connectedClient) {
+    if (port) {
         await writeToSerial("*hb:0*");
         var OldHeartBeat = heartBeat
         setTimeout(function () {

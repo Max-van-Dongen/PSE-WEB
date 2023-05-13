@@ -1,6 +1,7 @@
 var ws;
 var canSend = false;
-var connectedClient;
+var connectedClient;//this browser connecting to other main browser that has zumo connected
+var connectedRemote;//this browser recieving inputs from other remote browser that doesn't have a zumo connected
 function sendOK(resp = true) {
     const jsonMessage = {
         "function": "response",
@@ -42,6 +43,7 @@ function connectWS() {
         switch (message.function) {
             case "recieveCommand":
                 writeToSerial(message.command);
+                connectedRemote = message.fromClient;
                 console.log(message.command);
                 sendOK();
                 break;
@@ -81,6 +83,18 @@ function messageWSUser(user, msg) {
         }
         ws.send(JSON.stringify(jsonMessage));
         // ws.send(msg);
+    }
+}
+
+function WSDataFromZumo(msg) {
+    if (connectedRemote) {
+        const jsonMessage = {
+            "function": "getClientCommand",
+            "toClient": connectedRemote,
+            "command": msg,
+        }
+        ws.send(JSON.stringify(jsonMessage));
+
     }
 }
 
