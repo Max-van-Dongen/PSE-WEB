@@ -131,7 +131,7 @@ async function writeToSerial(data, AT) {
 //END OF COMM
 
 //DATA EXTRACTION
-function createChart() {
+function createCharts() {
     var options = {
         series: [{
             name: 'Distance',
@@ -176,8 +176,52 @@ function createChart() {
     distanceChart = new ApexCharts(document.querySelector("#DistanceChart"), options);
 
     distanceChart.render();
+    var options = {
+        series: [{
+            name: 'Distance',
+            data: [0,0,16]
+        }, ],
+        grid: {
+            show: false,
+        },
+        chart: {
+            height: 150,
+            type: 'area',
+            toolbar: {
+                show: false,
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            curve: 'smooth'
+        },
+        xaxis: {
+            type: 'text',
+            categories: ["1","2","3"],
+            labels: {
+                show: false
+              }
+        },
+        tooltip: {
+            enabled: false,
+        },
+        yaxis: {
+            type: 'text',
+            min: 0,
+            max: 1000,
+            labels: {
+                show: false
+              }
+        },
+    };
+
+    lineChart = new ApexCharts(document.querySelector("#LineChart"), options);
+
+    lineChart.render();
 }
-createChart();
+createCharts();
 function scale(number, inMin, inMax, outMin, outMax) {//StackOverflow
     return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
 }
@@ -212,12 +256,16 @@ function HandleIncoming(index, value) {
         case "LSR":
             if (!LineSensorMemory[index] || LineSensorMemory[index] != value) {//LS Changed
                 LineSensorMemory[index] = value;
-                document.getElementById(index).style.height = scale(value, 0, 1000, 0, 100) + "%";
+                // document.getElementById(index).style.height = scale(value, 0, 1000, 0, 100) + "%";
+                lineChart.updateSeries([{
+                    name: 'Distance',
+                    data: [LineSensorMemory["LSL"]??0,LineSensorMemory["LSM"]??0,LineSensorMemory["LSR"]??0].reverse()
+                  }])
             }
             break;
-        case "GX":
-            document.getElementById(index).style.height = scale(value, -90, 90, 0, 100) + "%";
-            break;
+        // case "GX":
+        //     document.getElementById(index).style.height = scale(value, -90, 90, 0, 100) + "%";
+        //     break;
         case "hb":
             heartBeat = parseInt(value);
             break;

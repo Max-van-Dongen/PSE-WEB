@@ -112,26 +112,27 @@
                     </div>
                 </div> -->
                 <h4>Lijnsensoren:</h4>
-                <div class="row">
+                <div id="LineChart" style="width: 95%;height: 100px;transform: rotate(180deg);"></div>
+                <!-- <div class="row">
                     <div class="col">
                         <div class="bar distancebar">
                             <div id="LSL" class="innerdistancebar" style="height:0%;"></div>
                         </div>
                         <!-- <div class="bar distancebar">
                             <div id="LSML" class="innerdistancebar" style="height:0%;"></div>
-                        </div> -->
+                        </div> --/>
                         <div class="bar distancebar">
                             <div id="LSM" class="innerdistancebar" style="height:0%;"></div>
                         </div>
                         <!-- <div class="bar distancebar">
                             <div id="LSMR" class="innerdistancebar" style="height:0%;"></div>
-                        </div> -->
+                        </div> --/>
                         <div class="bar distancebar">
                             <div id="LSR" class="innerdistancebar" style="height:0%;"></div>
                         </div>
                     </div>
                 </div>
-                <br>
+                <br> -->
                 <!-- <h4>Gyro:</h4>
                 <div class="row">
                     <div class="col">
@@ -242,7 +243,7 @@
                 y: 'top',
             },
         });
-        var distanceChart
+        var distanceChart,lineChart;
         var port, debug = false, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false, ATMode = false, gamepad, rumble = true, kbSpeed = 200;
     </script>
     <script src="/js/VariousFunctions.js"></script>
