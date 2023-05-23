@@ -42,10 +42,10 @@ async function ChangeChannel(channel) {
 }
 var DistanceMemory = {}
 var timeout;
-function handleDistanceLogic(sensor, readout) {
+function handleRumbleLogic(sensor, readout) {
     DistanceMemory[sensor] = readout;
     if (timeout || !rumble || !gamepad) return;
-    console.log("reading vars");
+    // console.log("reading vars");
     if (DistanceMemory["PSMR"] >= 15 && DistanceMemory["PSML"] >= 15) {
         gamepad.vibrationActuator.playEffect("dual-rumble", {
             startDelay: 0,
@@ -53,7 +53,7 @@ function handleDistanceLogic(sensor, readout) {
             weakMagnitude: 1.0,
             strongMagnitude: 1.0,
         });
-        console.log('vibrating');
+        // console.log('vibrating');
     }
     timeout = setTimeout(() => {
         timeout = null;
@@ -131,13 +131,61 @@ async function writeToSerial(data, AT) {
 //END OF COMM
 
 //DATA EXTRACTION
+function createChart() {
+    var options = {
+        series: [{
+            name: 'Distance',
+            data: [0,0,16,16,0,0]
+        }, ],
+        grid: {
+            show: false,
+        },
+        chart: {
+            height: 150,
+            type: 'area',
+            toolbar: {
+                show: false,
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            curve: 'smooth'
+        },
+        xaxis: {
+            type: 'text',
+            categories: ["1","2","3","4","5","6"],
+            labels: {
+                show: false
+              }
+        },
+        tooltip: {
+            enabled: false,
+        },
+        yaxis: {
+            type: 'text',
+            min: 0,
+            max: 16,
+            labels: {
+                show: false
+              }
+        },
+    };
 
+    distanceChart = new ApexCharts(document.querySelector("#DistanceChart"), options);
+
+    distanceChart.render();
+}
+createChart();
 function scale(number, inMin, inMax, outMin, outMax) {//StackOverflow
     return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
 }
+var LineSensorMemory = {};
+var ProxSensorMemory = {};
 function HandleIncoming(index, value) {
     if (connectedRemote) {
-        WSDataFromZumo("*"+index+":"+value+"*");
+        WSDataFromZumo("*" + index + ":" + value + "*");
     }
     switch (index) {
         case "PSL":
@@ -146,15 +194,26 @@ function HandleIncoming(index, value) {
         case "PSMR":
         case "PSMRR":
         case "PSR":
-            handleDistanceLogic(index, value)
-            document.getElementById(index).style.height = scale(value, 0, 16, 0, 100) + "%";
+            if (!ProxSensorMemory[index] || ProxSensorMemory[index] != value) {//PS Changed
+                ProxSensorMemory[index] = value;
+                console.log("changed");
+                handleRumbleLogic(index, value)
+                // document.getElementById(index).style.height = scale(value, 0, 16, 0, 100) + "%";
+                distanceChart.updateSeries([{
+                    name: 'Distance',
+                    data: [ProxSensorMemory["PSL"]??0,ProxSensorMemory["PSMLL"]??0,ProxSensorMemory["PSML"]??0,ProxSensorMemory["PSMR"]??0,ProxSensorMemory["PSMRR"]??0,ProxSensorMemory["PSR"]??0].reverse()
+                  }])
+            }
             break;
         case "LSL":
         case "LSML":
         case "LSM":
         case "LSMR":
         case "LSR":
-            document.getElementById(index).style.height = scale(value, 0, 1000, 0, 100) + "%";
+            if (!LineSensorMemory[index] || LineSensorMemory[index] != value) {//LS Changed
+                LineSensorMemory[index] = value;
+                document.getElementById(index).style.height = scale(value, 0, 1000, 0, 100) + "%";
+            }
             break;
         case "GX":
             document.getElementById(index).style.height = scale(value, -90, 90, 0, 100) + "%";

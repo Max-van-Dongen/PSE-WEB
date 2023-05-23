@@ -88,7 +88,8 @@
                     </div>
                 </div>
                 <h4>Afstandssensoren:</h4>
-                <div class="row">
+                <div id="DistanceChart" style="width: 95%;height: 100px;transform: rotate(180deg);"></div>
+                <!-- <div class="row">
                     <div class="col">
                         <div class="bar distancebar">
                             <div id="PSL" class="innerdistancebar" style="height:0%;"></div>
@@ -109,8 +110,7 @@
                             <div id="PSR" class="innerdistancebar" style="height:0%;"></div>
                         </div>
                     </div>
-                </div>
-                <br>
+                </div> -->
                 <h4>Lijnsensoren:</h4>
                 <div class="row">
                     <div class="col">
@@ -206,8 +206,7 @@
                 </div>
                 <br>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" onclick="toggleDebug()"
-                        id="FollowLine">
+                    <input class="form-check-input" type="checkbox" onclick="toggleDebug()" id="FollowLine">
                     <label class="form-check-label" for="flexSwitchCheckDefault">Debug</label>
                 </div>
             </div>
@@ -232,6 +231,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
         crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
         const connectButton = document.getElementById('connectbutton');
         const outputElement = document.getElementById('output');
@@ -242,7 +242,7 @@
                 y: 'top',
             },
         });
-
+        var distanceChart
         var port, debug = false, turbo, messagepart = "", lastmessage = "", recieving = false, useKeyboard = true, heartBeat = 0, connectedUSB = false, connectedZumo = false, ATMode = false, gamepad, rumble = true, kbSpeed = 200;
     </script>
     <script src="/js/VariousFunctions.js"></script>
