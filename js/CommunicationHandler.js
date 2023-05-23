@@ -135,7 +135,7 @@ function createCharts() {
     var options = {
         series: [{
             name: 'Distance',
-            data: [0,0,16,16,0,0]
+            data: [0,0,0,0,0,0]
         }, ],
         grid: {
             show: false,
@@ -179,7 +179,7 @@ function createCharts() {
     var options = {
         series: [{
             name: 'Distance',
-            data: [0,0,16]
+            data: [0,0,0]
         }, ],
         grid: {
             show: false,
