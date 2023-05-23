@@ -7,9 +7,11 @@ function toggleFF() {
 }
 function ChangeSpeed(speed) {
     kbSpeed = speed;
+    document.getElementById("SpeedText").innerHTML = "Snelheid("+speed+"):"
 }
 function ChangeLineSpeed(speed) {
     writeToSerial("*lspd:" + speed + "*")
+    document.getElementById("LineSpeedText").innerHTML = "Lijn Snelheid("+speed+"):"
 }
 function removeOptions(selectElement) {
     var i, L = selectElement.options.length - 1;
