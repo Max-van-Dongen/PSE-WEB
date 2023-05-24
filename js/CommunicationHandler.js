@@ -15,15 +15,21 @@ async function printToConsole(msg, incoming = true) {
     outputElement.scrollTo(0, outputElement.scrollHeight)
     if (ATMode) {
         ATLogs += msg;
-        if (ATLogs == "OK\r") {
+        console.log(ATLogs);
+        if (ATLogs.search("OK") || ATLogs == "O\r\\nK\\r\\n") {
+            console.log("OK");
             ATLogs = "";
             if (!ChangingChannel) {
-                await writeToSerial("ATID " + Channel + "\r", true);
-                ChangingChannel = true;
+                setTimeout(() => {
+                    writeToSerial("ATID " + Channel + "\r", true);
+                    ChangingChannel = true;
+                }, 2000);
             } else {
                 notyf.success("Changed Channels");
                 ChangingChannel = false;
                 ATMode = false;
+                createCookie("SelectedZumo", Channel, "365");
+                document.cookie = "SelectedZumo=" + dropdown.value;
                 await setTimeout(async function () {
                     await writeToSerial("ATCN \r", true)
                 }, 500);
@@ -103,6 +109,7 @@ function HandleZumoSelector() {
     ChangeChannel(dropdown.value);
 }
 async function writeToSerial(data, AT) {
+    console.log(data);
     if (connectedClient) {
         messageWSUser(connectedClient, data);
         if (debug) {
@@ -135,8 +142,9 @@ function createCharts() {
     var options = {
         series: [{
             name: 'Distance',
-            data: [0,0,0,0,0,0]
-        }, ],
+            // data: [0, 0, 0, 0, 0, 0]
+            data: [0,0]
+        },],
         grid: {
             show: false,
         },
@@ -155,10 +163,11 @@ function createCharts() {
         },
         xaxis: {
             type: 'text',
-            categories: ["1","2","3","4","5","6"],
+            // categories: ["1", "2", "3", "4", "5", "6"],
+            categories: ["1","2"],
             labels: {
                 show: false
-              }
+            }
         },
         tooltip: {
             enabled: false,
@@ -169,7 +178,7 @@ function createCharts() {
             max: 16,
             labels: {
                 show: false
-              }
+            }
         },
     };
 
@@ -179,8 +188,8 @@ function createCharts() {
     var options = {
         series: [{
             name: 'Distance',
-            data: [0,0,0]
-        }, ],
+            data: [0, 0, 0, 0, 0]
+        },],
         grid: {
             show: false,
         },
@@ -199,10 +208,10 @@ function createCharts() {
         },
         xaxis: {
             type: 'text',
-            categories: ["1","2","3"],
+            categories: ["1", "2", "3", "4", "5"],
             labels: {
                 show: false
-              }
+            }
         },
         tooltip: {
             enabled: false,
@@ -213,7 +222,7 @@ function createCharts() {
             max: 1000,
             labels: {
                 show: false
-              }
+            }
         },
     };
 
@@ -245,8 +254,8 @@ function HandleIncoming(index, value) {
                 // document.getElementById(index).style.height = scale(value, 0, 16, 0, 100) + "%";
                 distanceChart.updateSeries([{
                     name: 'Distance',
-                    data: [ProxSensorMemory["PSL"]??0,ProxSensorMemory["PSMLL"]??0,ProxSensorMemory["PSML"]??0,ProxSensorMemory["PSMR"]??0,ProxSensorMemory["PSMRR"]??0,ProxSensorMemory["PSR"]??0].reverse()
-                  }])
+                    data: [ProxSensorMemory["PSL"] ?? 0, ProxSensorMemory["PSMLL"] ?? 0, ProxSensorMemory["PSML"] ?? 0, ProxSensorMemory["PSMR"] ?? 0, ProxSensorMemory["PSMRR"] ?? 0, ProxSensorMemory["PSR"] ?? 0].reverse()
+                }])
             }
             break;
         case "LSL":
@@ -259,8 +268,8 @@ function HandleIncoming(index, value) {
                 // document.getElementById(index).style.height = scale(value, 0, 1000, 0, 100) + "%";
                 lineChart.updateSeries([{
                     name: 'Distance',
-                    data: [LineSensorMemory["LSL"]??0,LineSensorMemory["LSM"]??0,LineSensorMemory["LSR"]??0].reverse()
-                  }])
+                    data: [LineSensorMemory["LSL"] ?? 0, LineSensorMemory["LSML"] ?? 0, LineSensorMemory["LSM"] ?? 0, LineSensorMemory["LSMR"] ?? 0, LineSensorMemory["LSR"] ?? 0].reverse()
+                }])
             }
             break;
         // case "GX":
