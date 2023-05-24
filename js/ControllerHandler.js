@@ -263,7 +263,7 @@ async function HandleMotorControl(keyboard = true) {
     }
     // console.log("Left: " + leftSpeed + " Right: " + rightSpeed);
     if (leftSpeed === 0 && rightSpeed === 0 && (MotorStates["rightSpeed"] !== 0 || MotorStates["leftSpeed"] !== 0)) {//one motor currently moving, all motors target 0, stop!
-        await writeToSerial("*e:0*");
+        // await writeToSerial("*e:0*");
         console.log("Stopping");
     }
     MotorStates["leftSpeed"] = leftSpeed;
